@@ -64,7 +64,7 @@ public class BTService {
 
 
     /**
-     * Constructor. Prepares a new BluetoothChat session.
+     * Constructor. Prepares a new BTService session.
      *
      * @param context The UI Activity Context
      * @param handler A Handler to send messages back to the UI Activity

@@ -20,7 +20,7 @@
     <!-- Strings related to Settings -->
 
     <!-- Example General settings -->
-    <string name="pref_header_general">Settings</string>
+    <string name="pref_header_general">Spectrometer Settings</string>
 
     <string name="pref_title_social_recommendations">Enable something or other</string>
     <string name="pref_description_social_recommendations">Real pro descriptor text

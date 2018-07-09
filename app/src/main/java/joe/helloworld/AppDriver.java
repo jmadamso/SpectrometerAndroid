@@ -18,6 +18,17 @@ import java.util.Arrays;
 import java.util.Set;
 
 
+/*
+ The main activity for the application. Declares important variables as well as
+ sets the initial view for the user to interact with the buttons.
+
+
+
+
+
+ */
+
+
 public class AppDriver extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1337;
 
@@ -35,7 +46,15 @@ public class AppDriver extends AppCompatActivity {
     private TextView mPressureText;
     private TextView mStatusText;
 
-    //this thing is like our soldier that we send to other activities to monitor and report back
+
+    //this thing is like our ambassador that we send to other activities to monitor and report back
+    //returns and responses from other activities will end up here
+
+    //msg.what --> What type of message is it?
+    //msg.arg1 --> Arbitrary sub-type attached to message by sender
+    //msg.obj  --> The actual message contents
+
+    //toast responses to be replaced with actual code as needed
     @SuppressLint("HandlerLeak")
     private final Handler mHandlerBT = new Handler(){
 
@@ -82,11 +101,12 @@ public class AppDriver extends AppCompatActivity {
                     //the first byte contained the identifier so we throw it away
                     byte[] pressureBytes = Arrays.copyOfRange((byte[]) msg.obj, 1, ((byte[]) msg.obj).length);
                     String pString = new String(pressureBytes);
+                    //write the pressure string to the reading
                     mPressureText.setText("Current Pressure: " + pString);
                     mPressureReading = Integer.parseInt(pString);
                     break;
 
-                //if we get this message, we can expect one intensity reading.
+                //if we get this message, msg.obj contains one intensity reading.
                 //the server will send 1024 of these upon receiving the command.
                 //PROTOCOL: [command][index];[intensity]
                 case defines.REQUEST_SPECTRA:
@@ -132,6 +152,10 @@ public class AppDriver extends AppCompatActivity {
     };
 
 
+    /*
+    upon creating this activity, check for bluetooth.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,11 +169,13 @@ public class AppDriver extends AppCompatActivity {
         mPressureText = findViewById(R.id.pressureText);
         mStatusText = findViewById(R.id.statusText);
 
+        //whenever this is called, update text displays to display their most recent text
         updateTextViews();
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
             Toast.makeText(AppDriver.this, "You don't seem to have bluetooth!" , Toast.LENGTH_SHORT).show();
+            finish();
         }
 
         //request to turn on bluetooth if it's off
@@ -275,8 +301,13 @@ public class AppDriver extends AppCompatActivity {
             super.onActivityResult(requestCode, resultCode, data);
 
             //this guy gets called when the bluetooth request dialog
-            if (requestCode == REQUEST_ENABLE_BT  && resultCode  == RESULT_OK) {
+            if (requestCode == REQUEST_ENABLE_BT) {
+                if(resultCode  == RESULT_OK){
                 //Toast.makeText(AppDriver.this, "Bluetooth enabled after activity return",Toast.LENGTH_SHORT).show();
+                } else if (resultCode == RESULT_CANCELED) {
+                    Toast.makeText(AppDriver.this, "You need bluetooth for this!", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
             }
 
         } catch (Exception ex) {
@@ -284,6 +315,7 @@ public class AppDriver extends AppCompatActivity {
         }
 
     }
+
 
 
 }
