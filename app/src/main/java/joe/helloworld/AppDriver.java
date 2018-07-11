@@ -21,11 +21,6 @@ import java.util.Set;
 /*
  The main activity for the application. Declares important variables as well as
  sets the initial view for the user to interact with the buttons.
-
-
-
-
-
  */
 
 
