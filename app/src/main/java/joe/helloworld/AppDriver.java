@@ -26,6 +26,7 @@ import java.util.Set;
 
 public class AppDriver extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1337;
+    private static final int REQUEST_SETTINGS_CHANGE = 777;
 
     private SharedPreferences mPrefs;
 
@@ -159,6 +160,8 @@ public class AppDriver extends AppCompatActivity {
 
         if (mBTService == null) {
             mBTService = new BTService(this, mHandlerBT);
+
+            //apply defaults here too
             mPrefs.edit().clear().apply();
         }
 
@@ -194,6 +197,14 @@ public class AppDriver extends AppCompatActivity {
         //Toast.makeText(AppDriver.this, "driver onCreate" , Toast.LENGTH_SHORT).show();
     }
 
+    protected void onResume() {
+        super.onResume();
+        //Toast.makeText(AppDriver.this, "Main onResume", Toast.LENGTH_SHORT).show();
+        if(mBTService != null) {
+            syncSettings();
+        }
+
+    }
 
     public void bluetoothButtonResponse(View view) {
 
@@ -210,9 +221,7 @@ public class AppDriver extends AppCompatActivity {
 
     }
 
-    public void syncButtonResponse(View view) {
-        //Toast.makeText(AppDriver.this, "OBSOLETE BUTTON LOL", Toast.LENGTH_SHORT).show();
-
+    private void syncSettings() {
         //format a settings string and send it
         String settingsStr = defines.SETTINGS +
                 mPrefs.getString("num_scans_entry","") + ";" +
@@ -229,8 +238,15 @@ public class AppDriver extends AppCompatActivity {
             byte[] b = settingsStr.getBytes();
             mBTService.write(b);
         } else {
-            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
         }
+
+    }
+
+    public void syncButtonResponse(View view) {
+        //Toast.makeText(AppDriver.this, "OBSOLETE BUTTON LOL", Toast.LENGTH_SHORT).show();
+        syncSettings();
+
 
     }
 
@@ -319,6 +335,7 @@ public class AppDriver extends AppCompatActivity {
                     finish();
                 }
             }
+
 
         } catch (Exception ex) {
             Toast.makeText(AppDriver.this, ex.toString(),Toast.LENGTH_SHORT).show();
