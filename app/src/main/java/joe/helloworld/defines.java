@@ -23,7 +23,8 @@ public class defines {
     static final char REQUEST_PRESSURE = '3';
     static final char REQUEST_SPECTRA = '4';
     static final char INTEGRATION_TIME = '5';
-    static final char QUIT = '6';
+    static final char SETTINGS = '6';
+    static final char QUIT = '7';
 
     //size of array we expect for an entire spectrum reading.
     //1024 doubles * 4 bytes/double

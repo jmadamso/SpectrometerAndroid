@@ -6,7 +6,7 @@
     <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
 
     <EditTextPreference
-        android:defaultValue="1"
+        android:defaultValue="5"
         android:inputType="number"
         android:key="num_scans_entry"
         android:maxLines="1"
@@ -15,7 +15,7 @@
         android:title="Number of Scans" />
 
     <EditTextPreference
-        android:defaultValue="1"
+        android:defaultValue="60"
         android:inputType="number"
         android:key="scan_time_entry"
         android:maxLines="1"
@@ -24,7 +24,7 @@
         android:title="Time Between Scans (seconds)" />
 
     <EditTextPreference
-        android:defaultValue="1"
+        android:defaultValue="1000"
         android:inputType="number"
         android:key="integration_time_entry"
         android:maxLines="1"
@@ -33,7 +33,7 @@
         android:title="Integration Time (milliseconds)" />
 
     <ListPreference
-        android:defaultValue="1"
+        android:defaultValue="0"
         android:entries="@array/integers09"
         android:entryValues="@array/integers09"
         android:key="boxcar_list"
@@ -42,7 +42,7 @@
         android:title="Boxcar Smoothing Width" />
 
     <ListPreference
-        android:defaultValue="1"
+        android:defaultValue="3"
         android:entries="@array/integers09"
         android:entryValues="@array/integers09"
         android:key="averaging_list"
@@ -50,21 +50,21 @@
         android:positiveButtonText="@null"
         android:title="Averages per Scan" />
 
-<!--
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="smoothing_switch"
-        android:summary="Shall we smooth the input?"
-        android:title="Use Boxcar Smoothing" />
-    <EditTextPreference
-        android:defaultValue="1"
-        android:inputType="number"
-        android:key="boxcar_width_entry"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="Boxcar Smoothing" />
--->
+    <!--
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="smoothing_switch"
+            android:summary="Shall we smooth the input?"
+            android:title="Use Boxcar Smoothing" />
+        <EditTextPreference
+            android:defaultValue="1"
+            android:inputType="number"
+            android:key="boxcar_width_entry"
+            android:maxLines="1"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Boxcar Smoothing" />
+    -->
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
 

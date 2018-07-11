@@ -33,6 +33,7 @@ public class AppDriver extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1337;
 
     private SharedPreferences mPrefs;
+
     private BluetoothAdapter mBluetoothAdapter;
     private static String mDeviceName;
 
@@ -160,8 +161,10 @@ public class AppDriver extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
         if (mBTService == null) {
             mBTService = new BTService(this, mHandlerBT);
+            mPrefs.edit().clear().apply();
         }
 
         mBTService.setHandler(mHandlerBT);
@@ -212,13 +215,23 @@ public class AppDriver extends AppCompatActivity {
 
     }
 
-    public void intButtonResponse(View view) {
+    public void syncButtonResponse(View view) {
         //Toast.makeText(AppDriver.this, "OBSOLETE BUTTON LOL", Toast.LENGTH_SHORT).show();
-        String intStr = defines.INTEGRATION_TIME + mPrefs.getString("integration_time_entry", "");
-        //Toast.makeText(AppDriver.this, intStr, Toast.LENGTH_SHORT).show();
 
+        //format a settings string and send it
+        String settingsStr = defines.SETTINGS +
+                mPrefs.getString("num_scans_entry","") + ";" +
+                mPrefs.getString("scan_time_entry", "") + ";" +
+                mPrefs.getString("integration_time_entry", "") + ";" +
+                mPrefs.getString("boxcar_list", "") + ";" +
+                mPrefs.getString("averaging_list", "");
+
+        //toast with the final string
+        //Toast.makeText(AppDriver.this, settingsStr, Toast.LENGTH_SHORT).show();
+
+        //convert the string to a byte array, check if clear, then send
         if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = intStr.getBytes();
+            byte[] b = settingsStr.getBytes();
             mBTService.write(b);
         } else {
             Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
@@ -232,6 +245,7 @@ public class AppDriver extends AppCompatActivity {
     }
 
     public void motorOnButtonResponse(View view) {
+
             if (mBTService.getState() == BTService.STATE_CONNECTED) {
                 byte[] b = new byte[1];
                 b[0] = defines.MOTOR_ON;
@@ -240,6 +254,7 @@ public class AppDriver extends AppCompatActivity {
             } else {
                 Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
             }
+
 
     }
 
