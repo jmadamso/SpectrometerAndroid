@@ -26,7 +26,8 @@ import java.util.Set;
 
 public class AppDriver extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1337;
-    private static final int REQUEST_SETTINGS_CHANGE = 777;
+    private static int lastIndex = 0;
+    private static int errorCount = 0;
 
     private SharedPreferences mPrefs;
 
@@ -36,7 +37,7 @@ public class AppDriver extends AppCompatActivity {
     //making this static keeps connections when changing orientation or something else
     private static BTService mBTService = null;
 
-    private static double[] spectrumArray = new double[1024];
+    private static double[] spectrumArray = new double[defines.NUM_WAVELENGTHS];
     private int mPressureReading;
 
     //the text displays at main page
@@ -108,14 +109,59 @@ public class AppDriver extends AppCompatActivity {
                 //PROTOCOL: [command][index];[intensity]
                 case defines.REQUEST_SPECTRA:
 
+                    int index = 0;
                     //throw away the identifier byte and parse out the index and intensity
                     byte[] tmpBytes = Arrays.copyOfRange((byte[]) msg.obj, 1, (((byte[]) msg.obj).length) + 1);
                     String tmpStr = new String(tmpBytes);
                     String delim = "[;]+";
                     String[] tokens = tmpStr.split(delim);
-                    int index = Integer.parseInt(tokens[0]);
+
+                    index = Integer.parseInt(tokens[0]);
+
+                    if (index == 0) {
+                        int k = 0;
+                        for (k = 0; k < defines.NUM_WAVELENGTHS; k++) {
+                            spectrumArray[k] = -1;
+                        }
+                    }
+
+
                     spectrumArray[index] = Float.parseFloat(tokens[1]);
+
+
+
+                    /*
+                    if(index > 1 && index < 1023) {
+                        if(index != (lastIndex + 1)) {
+                            errorCount++;
+                            //Toast.makeText(AppDriver.this, "bad times at index " + tokens[0] , Toast.LENGTH_LONG).show();
+                        }
+                    }
+                    lastIndex = index;
+                    */
+
+                   //Toast.makeText(AppDriver.this, "tokens= " + tokens[0] + " and " + tokens[1] , Toast.LENGTH_LONG).show();
+
+
+                    //index = Integer.parseInt(tokens[0]);
+                    //spectrumArray[index] = Float.parseFloat(tokens[1]);
+
+
                     if(index == 1023) {
+                        int k = 0;
+                        for (k = 0; k < defines.NUM_WAVELENGTHS; k++) {
+                            if(spectrumArray[k] != k) {
+                                errorCount++;
+
+                                //Toast.makeText(AppDriver.this, "bad times at index 1023", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                        Toast.makeText(AppDriver.this, "errorCount  @ 1023= " + errorCount, Toast.LENGTH_LONG).show();
+
+
+                        //Toast.makeText(AppDriver.this, "ErrorCount= " + errorCount , Toast.LENGTH_LONG).show();
+                        //lastIndex  = 0;
+                        errorCount = 0;
                         //STATIC INT SPECTRUMREADY = TRUE
                         //UPDATE GRAPH?
                     } else {
@@ -243,11 +289,22 @@ public class AppDriver extends AppCompatActivity {
 
     }
 
+    public void snapshotButtonResponse(View view) {
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            byte[] b = new byte[1];
+            b[0] = defines.REQUEST_SPECTRA;
+            mBTService.write(b);
+            Toast.makeText(AppDriver.this, "Requesting snapshot", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public void syncButtonResponse(View view) {
         //Toast.makeText(AppDriver.this, "OBSOLETE BUTTON LOL", Toast.LENGTH_SHORT).show();
-        syncSettings();
-
-
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            syncSettings();
+        }
     }
 
     public void settingsButtonResponse(View view) {

@@ -28,6 +28,7 @@ public class defines {
     //size of array we expect for an entire spectrum reading.
     //1024 doubles * 4 bytes/double
     static final int SPECTRUM_ARRAY_SIZE = 4096;
+    static final int NUM_WAVELENGTHS = 1024;
 
 
 
