@@ -292,6 +292,11 @@ public class AppDriver extends AppCompatActivity {
         } else {
             Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
         }
+
+        //now take us to see result
+        Intent i = new Intent(this, ResultActivity.class);
+        startActivity(i);
+
     }
 
     public void syncButtonResponse(View view) {
