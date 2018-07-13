@@ -26,8 +26,8 @@ public class defines {
     static final char QUIT = '6';
 
     //size of array we expect for an entire spectrum reading.
-    //1024 doubles * 4 bytes/double
-    static final int SPECTRUM_ARRAY_SIZE = 4096;
+    //1024 doubles * 8 bytes/double (as string) + 1 for ;
+    static final int SPECTRUM_ARRAY_SIZE = 9600;
     static final int NUM_WAVELENGTHS = 1024;
 
 

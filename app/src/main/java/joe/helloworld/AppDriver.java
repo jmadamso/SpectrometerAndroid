@@ -95,6 +95,8 @@ public class AppDriver extends AppCompatActivity {
                 //if we get this message, we have received the pressure reading. So we update
                 //the user.
                 case defines.REQUEST_PRESSURE:
+                    //Toast.makeText(AppDriver.this, "made it to requestPressure", Toast.LENGTH_LONG).show();
+
                     //the server has responded with a pressure reading.
                     //the first byte contained the identifier so we throw it away
                     byte[] pressureBytes = Arrays.copyOfRange((byte[]) msg.obj, 1, ((byte[]) msg.obj).length);
@@ -104,69 +106,47 @@ public class AppDriver extends AppCompatActivity {
                     mPressureReading = Integer.parseInt(pString);
                     break;
 
-                //if we get this message, msg.obj contains one intensity reading.
-                //the server will send 1024 of these upon receiving the command.
-                //PROTOCOL: [command][index];[intensity]
+                //if we get this message, msg.obj contains a spectrum reading.
+                //the server will send one large string (approx 8kilobyte)
+                //delimited by ';'
+
+                //originally attempted to stream 1024 single-reading packets but
+                //that method dropped a lot of data. Now trying huge-string method
                 case defines.REQUEST_SPECTRA:
+                    //Toast.makeText(AppDriver.this, "made it to requestSpectra", Toast.LENGTH_LONG).show();
 
                     int index = 0;
-                    //throw away the identifier byte and parse out the index and intensity
+
+                    //clear spectrumArray for debugging purposes
+                    int k = 0;
+                    for (k = 0; k < defines.NUM_WAVELENGTHS; k++) {
+                        spectrumArray[k] = -1;
+                    }
+
+                    //throw away the identifier byte and parse out the intensities.
+                    //place parsed floats into tokens[] as strings
                     byte[] tmpBytes = Arrays.copyOfRange((byte[]) msg.obj, 1, (((byte[]) msg.obj).length) + 1);
                     String tmpStr = new String(tmpBytes);
                     String delim = "[;]+";
                     String[] tokens = tmpStr.split(delim);
 
-                    index = Integer.parseInt(tokens[0]);
-
-                    if (index == 0) {
-                        int k = 0;
-                        for (k = 0; k < defines.NUM_WAVELENGTHS; k++) {
-                            spectrumArray[k] = -1;
-                        }
+                    //now iterate through the tokens, grabbing floats.
+                    for (index = 0; index <= tokens.length; index++) {
+                        spectrumArray[index] = Float.parseFloat(tokens[index]);
                     }
 
 
-                    spectrumArray[index] = Float.parseFloat(tokens[1]);
-
-
-
-                    /*
-                    if(index > 1 && index < 1023) {
-                        if(index != (lastIndex + 1)) {
+                    for (k = 0; k < defines.NUM_WAVELENGTHS; k++) {
+                        if(spectrumArray[k] != k) {
                             errorCount++;
-                            //Toast.makeText(AppDriver.this, "bad times at index " + tokens[0] , Toast.LENGTH_LONG).show();
+                            //Toast.makeText(AppDriver.this, "errorcount++", Toast.LENGTH_LONG).show();
                         }
                     }
-                    lastIndex = index;
-                    */
+                    Toast.makeText(AppDriver.this, "errorCount = " + errorCount, Toast.LENGTH_LONG).show();
+                    errorCount = 0;
 
-                   //Toast.makeText(AppDriver.this, "tokens= " + tokens[0] + " and " + tokens[1] , Toast.LENGTH_LONG).show();
-
-
-                    //index = Integer.parseInt(tokens[0]);
-                    //spectrumArray[index] = Float.parseFloat(tokens[1]);
-
-
-                    if(index == 1023) {
-                        int k = 0;
-                        for (k = 0; k < defines.NUM_WAVELENGTHS; k++) {
-                            if(spectrumArray[k] != k) {
-                                errorCount++;
-
-                                //Toast.makeText(AppDriver.this, "bad times at index 1023", Toast.LENGTH_LONG).show();
-                            }
-                        }
-                        Toast.makeText(AppDriver.this, "errorCount  @ 1023= " + errorCount, Toast.LENGTH_LONG).show();
-
-
-                        //Toast.makeText(AppDriver.this, "ErrorCount= " + errorCount , Toast.LENGTH_LONG).show();
-                        //lastIndex  = 0;
-                        errorCount = 0;
-                        //STATIC INT SPECTRUMREADY = TRUE
-                        //UPDATE GRAPH?
-                    } else {
-                        //SPECTRUMREADY = FALSE;
-                    }
+                    //AT THIS POINT SPECTRUM IS READY.
+                    //updateGraph()?
                     break;
 
                 //if we get this message, we have received something
