@@ -158,9 +158,19 @@ public class AppDriver extends AppCompatActivity {
                         Toast.makeText(AppDriver.this, "errorCount at last index = " + errorCount, Toast.LENGTH_LONG).show();
                         //Toast.makeText(AppDriver.this, "last error: index " + errIndex + " contains " + spectrumArray[errIndex], Toast.LENGTH_LONG).show();
 
+                        //now bundle the array and send it to result screen
+                        Bundle b = new Bundle();
+                        b.putDoubleArray("spectrumArray",spectrumArray);
+                        Intent i = new Intent(getApplicationContext(), ResultActivity.class);
+                        i.putExtras(b);
+                        startActivity(i);
+
+                        //now take us to see result
+                        //Intent i = new Intent(this, ResultActivity.class);
+
+
+
                     }
-                    //AT THIS POINT SPECTRUM IS READY.
-                    //updateGraph()?
                     break;
 
                 //if we get this message, we have received something
@@ -293,9 +303,7 @@ public class AppDriver extends AppCompatActivity {
             Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
         }
 
-        //now take us to see result
-        Intent i = new Intent(this, ResultActivity.class);
-        startActivity(i);
+
 
     }
 

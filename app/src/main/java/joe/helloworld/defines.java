@@ -30,6 +30,9 @@ public class defines {
     static final int SPECTRUM_ARRAY_SIZE = 1024;
     static final int NUM_WAVELENGTHS = 1024;
 
+    static final double[] wavelengthArray = {
+            //1024 wavelengths go here
+    };
 
 
 
