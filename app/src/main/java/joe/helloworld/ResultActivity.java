@@ -6,6 +6,12 @@ import android.graphics.*;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import com.androidplot.ui.HorizontalPositioning;
+import com.androidplot.ui.PositionMetrics;
+import com.androidplot.ui.Size;
+import com.androidplot.ui.SizeMode;
+import com.androidplot.ui.TextOrientation;
+import com.androidplot.ui.VerticalPositioning;
 import com.androidplot.util.PixelUtils;
 import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYSeries;
@@ -28,6 +34,7 @@ public class ResultActivity extends Activity {
 
         // initialize our XYPlot reference:
         plot = (XYPlot) findViewById(R.id.plot);
+
 
         //grab the array that was passed in:
         Bundle b = this.getIntent().getExtras();
@@ -68,6 +75,23 @@ public class ResultActivity extends Activity {
 
         // add a new series' to the xyplot:
         plot.addSeries(series1, series1Format);
+        plot.getLegend().setVisible(false);
+        plot.setDomainStep(StepMode.SUBDIVIDE, 9);
+        plot.setRangeStep(StepMode.SUBDIVIDE, 6);
+
+        //plot.getGraph().position(
+                //100, HorizontalPositioning.ABSOLUTE_FROM_LEFT,
+                //100, VerticalPositioning.ABSOLUTE_FROM_TOP);
+        //plot.getGraph().setPadding(0,0,0,0);
+        //plot.setMarkupEnabled(true);
+
+        //plot.getGraph().setSize(new Size(
+                //PixelUtils.dpToPix(50), SizeMode.FILL,
+                //PixelUtils.dpToPix(50), SizeMode.FILL));
+
+        //MARGIN is where labels go. increase this is range labels are cutoff
+        plot.getGraph().setMarginLeft(200);
+
 
         plot.getGraph().getLineLabelStyle(XYGraphWidget.Edge.BOTTOM).setFormat(new Format() {
             @Override
@@ -81,5 +105,6 @@ public class ResultActivity extends Activity {
                 return null;
             }
         });
+
     }
 }
