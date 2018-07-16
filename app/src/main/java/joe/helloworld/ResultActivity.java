@@ -26,7 +26,7 @@ import java.util.*;
 public class ResultActivity extends Activity {
 
     private XYPlot plot;
-
+    static private double[] spectrumArray = new double[defines.NUM_WAVELENGTHS];
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +38,7 @@ public class ResultActivity extends Activity {
 
         //grab the array that was passed in:
         Bundle b = this.getIntent().getExtras();
-        double[] spectrumArray = b.getDoubleArray("spectrumArray");
+        spectrumArray = b.getDoubleArray("spectrumArray");
 
 
         // create a couple arrays of y-values to plot:

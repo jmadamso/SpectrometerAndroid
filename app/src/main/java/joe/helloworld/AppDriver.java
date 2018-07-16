@@ -117,11 +117,8 @@ public class AppDriver extends AppCompatActivity {
                 //that method dropped a lot of data. Now trying 128 * 8 string method
                 case defines.REQUEST_SPECTRA:
                     //Toast.makeText(AppDriver.this, "made it to requestSpectra", Toast.LENGTH_LONG).show();
-
                     int index = 0;
-
                     int k = 0;
-
 
                     //throw away the identifier byte and parse out the intensities.
                     //place parsed floats into tokens[] as strings
@@ -164,12 +161,6 @@ public class AppDriver extends AppCompatActivity {
                         Intent i = new Intent(getApplicationContext(), ResultActivity.class);
                         i.putExtras(b);
                         startActivity(i);
-
-                        //now take us to see result
-                        //Intent i = new Intent(this, ResultActivity.class);
-
-
-
                     }
                     break;
 
@@ -269,6 +260,26 @@ public class AppDriver extends AppCompatActivity {
             Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    public void ledButtonResponse(View view) {
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            byte[] b = new byte[1];
+            b[0] = defines.LED_TOGGLE;
+            mBTService.write(b);
+            //Toast.makeText(AppDriver.this, "Toggling LED", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void viewSnapshotResponse(View view) {
+        //now take us to see result
+        Bundle b = new Bundle();
+        b.putDoubleArray("spectrumArray",spectrumArray);
+        Intent i = new Intent(getApplicationContext(), ResultActivity.class);
+        i.putExtras(b);
+        startActivity(i);
     }
 
     private void syncSettings() {

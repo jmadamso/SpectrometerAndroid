@@ -24,6 +24,7 @@ public class defines {
     static final char REQUEST_SPECTRA = '4';
     static final char SETTINGS = '5';
     static final char QUIT = '6';
+    static final char LED_TOGGLE = '7';
 
     //size of array we expect for an entire spectrum reading.
     //1024 doubles * 8 bytes/double (as string) + 1 for ;
