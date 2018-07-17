@@ -160,7 +160,7 @@ public class AppDriver extends AppCompatActivity {
                         b.putDoubleArray("spectrumArray",spectrumArray);
                         Intent i = new Intent(getApplicationContext(), ResultActivity.class);
                         i.putExtras(b);
-                        startActivity(i);
+
                     }
                     break;
 

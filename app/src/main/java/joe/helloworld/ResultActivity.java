@@ -17,6 +17,8 @@ import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYSeries;
 import com.androidplot.xy.*;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.FieldPosition;
 import java.text.Format;
 import java.text.ParsePosition;
@@ -45,10 +47,13 @@ public class ResultActivity extends Activity {
         final Number[] domainLabels = new Number[1024];
         Number[] series1Numbers = new Number[1024];
 
+        DecimalFormat df = new DecimalFormat("###.##");
+        df.setRoundingMode(RoundingMode.HALF_UP);
+
         int i;
         for(i = 0; i < series1Numbers.length; i++) {
             series1Numbers[i] = spectrumArray[i];
-            domainLabels[i] = i;
+            domainLabels[i] = Double.parseDouble(df.format(defines.wavelengthArray[i]));
         }
 
 
