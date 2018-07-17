@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.util.UUID;
 
 
 /**
@@ -47,6 +48,8 @@ import java.lang.reflect.Method;
 public class BTService {
     // Debugging
     private static final String TAG = "BTService";
+    private static final UUID MY_UUID =
+            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     // Member fields
     private final BluetoothAdapter mAdapter;
@@ -271,14 +274,20 @@ public class BTService {
             mmDevice = device;
             BluetoothSocket tmp = null;
 
-            //getting a little silly here to bypass UUID but we are fearless.
-            //eventually need to get the server-side advertising a UUID but for now,
-            //trust that there aren't hackers who know specifically how to intercept this
+            //originally created anonymous and insecure links; now attempting to do it with the
+            //right function
             try {
-                Method method;
 
+                //the following code uses reflection to create insecure connections
+                //with undocumented code
+                /*
+                Method method;
                 method = device.getClass().getMethod("createRfcommSocket", new Class[] { int.class } );
                 tmp = (BluetoothSocket) method.invoke(device, 1);
+                */
+
+                //the following code skips that janky stuff and does it the right way:
+                tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (Exception e) {
                 Log.e(TAG, "create() failed", e);
             }
