@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="joe.helloworld">
+    package="jmadamso.spectrometer">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -13,7 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".AppDriver">
+        <activity android:name="jmadamso.spectrometer.AppDriver">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,17 +22,17 @@
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name="jmadamso.spectrometer.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".AppDriver">
+            android:parentActivityName="jmadamso.spectrometer.AppDriver">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="joe.helloworld.AppDriver" />
+                android:value="jmadamso.spectrometer.AppDriver" />
         </activity>
 
         <activity
-                android:name=".ResultActivity"
+                android:name="jmadamso.spectrometer.ResultActivity"
                 android:label="@string/title_result_screen" >
 
 

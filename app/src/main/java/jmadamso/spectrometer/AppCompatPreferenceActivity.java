@@ -1,4 +1,4 @@
-package joe.helloworld;
+package jmadamso.spectrometer;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

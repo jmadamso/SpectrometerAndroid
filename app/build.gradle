@@ -4,12 +4,11 @@ android {
 
     compileSdkVersion 27 //this needs to match the support libs below.
     defaultConfig {
-        applicationId "joe.helloworld"
+        applicationId "jmadamso.spectrometer"
         minSdkVersion 14
         targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionCode 2
+        versionName "2.0"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {

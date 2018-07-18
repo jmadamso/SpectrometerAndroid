@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="joe.helloworld.AppDriver">
+    tools:context="jmadamso.spectrometer.AppDriver">
 
     <Button
         android:id="@+id/startButton"

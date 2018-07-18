@@ -1,4 +1,4 @@
-package joe.helloworld;
+package jmadamso.spectrometer;
 
 /**
  * Created by Joseph on 5/26/2018.

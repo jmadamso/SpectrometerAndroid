@@ -1,18 +1,8 @@
-package joe.helloworld;
+package jmadamso.spectrometer;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.graphics.*;
-import android.os.Bundle;
-import android.widget.Toast;
 
-import com.androidplot.ui.HorizontalPositioning;
-import com.androidplot.ui.PositionMetrics;
-import com.androidplot.ui.Size;
-import com.androidplot.ui.SizeMode;
-import com.androidplot.ui.TextOrientation;
-import com.androidplot.ui.VerticalPositioning;
-import com.androidplot.util.PixelUtils;
 import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYSeries;
 import com.androidplot.xy.*;
