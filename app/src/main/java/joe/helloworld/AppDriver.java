@@ -9,6 +9,7 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.preference.*;
@@ -43,6 +44,11 @@ public class AppDriver extends AppCompatActivity {
     //the text displays at main page
     private TextView mPressureText;
     private TextView mStatusText;
+    private Button mMotorButton;
+    private Button mLedButton;
+
+    private static int motorState = 0;
+    private static int ledState = 0;
 
 
     //this thing is like our ambassador that we send to other activities to monitor and report back
@@ -152,7 +158,7 @@ public class AppDriver extends AppCompatActivity {
                                 //Toast.makeText(AppDriver.this, "errorcount++", Toast.LENGTH_LONG).show();
                             }
                         }
-                        Toast.makeText(AppDriver.this, "errorCount at last index = " + errorCount, Toast.LENGTH_LONG).show();
+                        Toast.makeText(AppDriver.this, "last spectra index reached", Toast.LENGTH_LONG).show();
                         //Toast.makeText(AppDriver.this, "last error: index " + errIndex + " contains " + spectrumArray[errIndex], Toast.LENGTH_LONG).show();
 
                         //now bundle the array and send it to result screen
@@ -160,7 +166,7 @@ public class AppDriver extends AppCompatActivity {
                         b.putDoubleArray("spectrumArray",spectrumArray);
                         Intent i = new Intent(getApplicationContext(), ResultActivity.class);
                         i.putExtras(b);
-
+                        startActivity(i);
                     }
                     break;
 
@@ -263,11 +269,20 @@ public class AppDriver extends AppCompatActivity {
     }
 
     public void ledButtonResponse(View view) {
+        Button mButton = (Button)findViewById(R.id.ledButton);
+
         if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            if(ledState == 0) {
+                mButton.setText("LED Off");
+               ledState = 1;
+            } else {
+                mButton.setText("LED On");
+                ledState = 0;
+            }
             byte[] b = new byte[1];
             b[0] = defines.LED_TOGGLE;
             mBTService.write(b);
-            //Toast.makeText(AppDriver.this, "Toggling LED", Toast.LENGTH_SHORT).show();
+            Toast.makeText(AppDriver.this, "Toggling LED", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
         }
@@ -330,31 +345,35 @@ public class AppDriver extends AppCompatActivity {
             startActivity(i);
     }
 
-    public void motorOnButtonResponse(View view) {
+    public void motorButtonResponse(View view) {
+        Button mButton = (Button)findViewById(R.id.motorButton);
 
-            if (mBTService.getState() == BTService.STATE_CONNECTED) {
-                byte[] b = new byte[1];
-                b[0] = defines.MOTOR_ON;
-                mBTService.write(b);
-                Toast.makeText(AppDriver.this, "Turning motor ON", Toast.LENGTH_SHORT).show();
+        if(motorState == 0) {
+                if (mBTService.getState() == BTService.STATE_CONNECTED) {
+                    byte[] b = new byte[1];
+                    b[0] = defines.MOTOR_ON;
+                    mBTService.write(b);
+                    mButton.setText("Motor Off");
+                    Toast.makeText(AppDriver.this, "Turning motor ON", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+                }
+                motorState = 1;
             } else {
-                Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+                if (mBTService.getState() == BTService.STATE_CONNECTED) {
+                    byte[] b = new byte[1];
+                    b[0] = defines.MOTOR_OFF;
+                    mBTService.write(b);
+                    mButton.setText("Motor On");
+                    Toast.makeText(AppDriver.this, "Turning motor OFF", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+                }
+                motorState = 0;
             }
 
-
     }
 
-    public void motorOffButtonResponse(View view) {
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = new byte[1];
-            b[0] = defines.MOTOR_OFF;
-            mBTService.write(b);
-            Toast.makeText(AppDriver.this, "Turning motor OFF", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
-
-    }
 
     public void startButtonResponse(View view) {
 

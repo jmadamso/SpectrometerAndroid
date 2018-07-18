@@ -21,7 +21,7 @@
 
     <Button
         android:id="@+id/settingsButton"
-        android:layout_width="100dp"
+        android:layout_width="105dp"
         android:layout_height="100dp"
         android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
@@ -44,32 +44,16 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/motorButton"
         android:layout_width="100dp"
         android:layout_height="60dp"
         android:layout_marginBottom="56dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginStart="8dp"
-        android:onClick="motorOnButtonResponse"
+        android:layout_marginEnd="80dp"
+        android:layout_marginRight="80dp"
+        android:onClick="motorButtonResponse"
         android:text="Motor On"
         app:layout_constraintBottom_toTopOf="@+id/guideline3"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="100dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="56dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginStart="8dp"
-        android:onClick="motorOffButtonResponse"
-        android:text="Motor Off"
-        app:layout_constraintBottom_toTopOf="@+id/guideline3"
-        app:layout_constraintEnd_toStartOf="@+id/button6"
-        app:layout_constraintHorizontal_bias="0.493"
-        app:layout_constraintStart_toEndOf="@+id/button" />
+        app:layout_constraintEnd_toStartOf="@+id/ledButton" />
 
     <Button
         android:id="@+id/button3"
@@ -110,7 +94,7 @@
 
     <Button
         android:id="@+id/button4"
-        android:layout_width="100dp"
+        android:layout_width="105dp"
         android:layout_height="100dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
@@ -145,20 +129,20 @@
         app:layout_constraintGuide_begin="454dp" />
 
     <Button
-        android:id="@+id/button6"
+        android:id="@+id/ledButton"
         android:layout_width="100dp"
         android:layout_height="60dp"
         android:layout_marginBottom="56dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:onClick="ledButtonResponse"
-        android:text="Toggle LED"
+        android:text="LED On"
         app:layout_constraintBottom_toTopOf="@+id/guideline3"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/button8"
-        android:layout_width="100dp"
+        android:layout_width="105dp"
         android:layout_height="100dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
