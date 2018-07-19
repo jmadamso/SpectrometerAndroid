@@ -13,30 +13,30 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="jmadamso.spectrometer.AppDriver">
+
+        <activity
+            android:name=".AppDriver">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
-            android:name="jmadamso.spectrometer.SettingsActivity"
+            android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName="jmadamso.spectrometer.AppDriver">
-
+            android:parentActivityName=".AppDriver">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="jmadamso.spectrometer.AppDriver" />
         </activity>
 
         <activity
-                android:name="jmadamso.spectrometer.ResultActivity"
-                android:label="@string/title_result_screen" >
-
-
+            android:name=".ResultActivity"
+            android:label="@string/title_result_screen"
+            android:theme="@style/AppTheme">
         </activity>
+
     </application>
 
 </manifest>

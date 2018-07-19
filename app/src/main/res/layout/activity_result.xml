@@ -1,22 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.design.widget.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/tab_height"
+        android:layout_gravity="top"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Graph" />
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Info" />
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Share" />
+
+    </android.support.design.widget.TabLayout>
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graph"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tabLayout"/>
 
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:ap="http://schemas.android.com/apk/res-auto"
-android:layout_height="match_parent"
-android:layout_width="match_parent">
-
-<com.androidplot.xy.XYPlot
-    android:id="@+id/plot"
-    style="@style/APDefacto.Dark"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    ap:domainTitle="wavelength"
-    ap:lineLabelRotationBottom="-45"
-    ap:lineLabels="left|bottom"
-    ap:rangeTitle="intensity"
-    ap:title="Spectrum" />
 
 
-
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>
