@@ -6,8 +6,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
@@ -24,20 +22,29 @@ public class GraphFragment extends Fragment {
 
     private double[] mSpectrumArray;
 
-    public GraphFragment(double[] spectrumArray) {
-        mSpectrumArray = spectrumArray;
+    public GraphFragment(){
+
     }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Bundle b = getArguments();
+        mSpectrumArray = b.getDoubleArray("spectrumArray");
+        if(mSpectrumArray == null) {
+            //default y=x if nothing was passed in
+            for(int i = 0; i < defines.NUM_WAVELENGTHS; i++) {
+                mSpectrumArray[i] = i;
+            }
+        }
+
         View view = inflater.inflate(R.layout.view_graph, container, false);
         GraphView graph = view.findViewById(R.id.graph);
+
         if(graph != null) {
             initGraph(graph);
         }
-
         return view;
     }
 

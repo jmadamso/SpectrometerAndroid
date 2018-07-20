@@ -1,8 +1,8 @@
 package jmadamso.spectrometer;
 
-
-import android.support.v4.app.Fragment;
 import android.content.Context;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
@@ -10,30 +10,39 @@ public class ResultFragmentAdapter extends FragmentPagerAdapter {
 
     private Context mContext;
     private double[] mArray;
-
+    private Bundle mArgs = new Bundle();
 
     public ResultFragmentAdapter(Context context, FragmentManager fm, double[] array) {
         super(fm);
         mContext = context;
         mArray = array;
+        mArgs.putDoubleArray("spectrumArray",array);
     }
 
-    // This determines the fragment for each tab
+
+
+    // This determines the fragment for each tab.
+    // we can define some args in a bundle to send
+    // stuff to whoever might need it.
+
+
     @Override
     public Fragment getItem(int position) {
         if (position == 0) {
-            return new GraphFragment(mArray);
+            GraphFragment gf = new GraphFragment();
+            gf.setArguments(mArgs);
+            return gf;
         } else if (position == 1){
             return new ScrollFragment();
         } else {
-            return new GraphFragment(mArray);
+            return new ScrollFragment();
         }
     }
 
     // This determines the number of tabs
     @Override
     public int getCount() {
-        return 3;
+        return 2;
     }
 
     // This determines the title for each tab
@@ -45,8 +54,6 @@ public class ResultFragmentAdapter extends FragmentPagerAdapter {
                 return "Graph";
             case 1:
                 return "Results";
-            case 2:
-                return "YEP";
             default:
                 return "default tab";
         }

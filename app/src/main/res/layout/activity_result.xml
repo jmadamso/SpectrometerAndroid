@@ -6,11 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.v4.view.ViewPager
+    <jmadamso.spectrometer.TouchlessViewPager
         android:id="@+id/viewpager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tabLayout"
         tools:layout_editor_absoluteX="31dp" />
@@ -20,42 +21,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:tabMode="fixed">
-        <!--
-        <android.support.design.widget.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Graph" />
-
-        <android.support.design.widget.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Info" />
-
-        <android.support.design.widget.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Share" />
-        -->
     </android.support.design.widget.TabLayout>
 
-    <!--
-    <include
-        layout="@layout/view_graph"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tabLayout"
-        app:layout_constraintVertical_bias="0.0"
-        tools:layout_editor_absoluteX="0dp" />
 
-
-
-    <View
-        android:id="@+id/view"
-        android:layout_width="317dp"
-        android:layout_height="201dp"
-        tools:layout_editor_absoluteX="34dp"
-        tools:layout_editor_absoluteY="275dp" />
-    -->
 
 </android.support.constraint.ConstraintLayout>

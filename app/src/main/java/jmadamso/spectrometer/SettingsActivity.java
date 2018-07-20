@@ -9,12 +9,11 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
-
+import android.support.v7.app.ActionBar;
+import android.view.MenuItem;
 
 import java.util.List;
 
@@ -32,14 +31,12 @@ import java.util.List;
 public class SettingsActivity extends AppCompatPreferenceActivity {
 
 
-
     /**
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
      *
      *
      */
-
     private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
         @Override
 
@@ -77,6 +74,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      * example, 10" tablets are extra-large.
      */
     private static boolean isXLargeTablet(Context context) {
+
         return (context.getResources().getConfiguration().screenLayout
                 & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
     }

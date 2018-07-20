@@ -1,6 +1,3 @@
-
-
-
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->

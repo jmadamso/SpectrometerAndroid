@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 27 //this needs to match the support libs below.
+    compileSdkVersion 27 //support libs below need to match this.
     defaultConfig {
         applicationId "jmadamso.spectrometer"
         minSdkVersion 14
@@ -24,7 +24,8 @@ dependencies {
     //get whatever jars are in the folder called libs
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    //SUPPORT DEPENDENCIES MUST MATCH COMPILESDKVERSION ABOVE
+    //these libraries intercept API calls and convert to backwards-
+    //compatible calls if needed. EG v7:27 lets api-7 devices use api-27
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'com.android.support:support-vector-drawable:27.1.1'
