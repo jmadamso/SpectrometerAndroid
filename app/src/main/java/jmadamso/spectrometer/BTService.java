@@ -1,5 +1,5 @@
 
-/**
+/*
  * Created by Joseph on 5/17/2018.
  * Modified BluetoothChat sample application
  */
@@ -151,7 +151,7 @@ public class BTService {
      * @param socket The BluetoothSocket on which the connection was made
      * @param device The BluetoothDevice that has been connected
      */
-    public synchronized void connected(BluetoothSocket socket, BluetoothDevice
+    private synchronized void connected(BluetoothSocket socket, BluetoothDevice
             device) {
         //Log.d(TAG, "connected, Socket Type:");
 
@@ -284,7 +284,8 @@ public class BTService {
                 tmp = (BluetoothSocket) method.invoke(device, 1);
                 */
 
-                //the following code skips that janky stuff and does it the right way:
+                //the following code skips that janky stuff and does it the right way, because
+                // the server was updated to use UUID:
                 tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (Exception e) {
                 Log.e(TAG, "create() failed", e);

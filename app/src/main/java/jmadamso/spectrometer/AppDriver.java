@@ -27,8 +27,6 @@ import java.util.Set;
 
 public class AppDriver extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1337;
-    private static int lastIndex = 0;
-    private static int errorCount = 0;
 
     private SharedPreferences mPrefs;
     private BluetoothAdapter mBluetoothAdapter;
@@ -38,24 +36,73 @@ public class AppDriver extends AppCompatActivity {
     private static BTService mBTService = null;
 
     private static double[] spectrumArray = new double[defines.NUM_WAVELENGTHS];
-    private int mPressureReading;
 
     //the text displays at main page
     private TextView mPressureText;
     private TextView mStatusText;
-    private Button mMotorButton;
-    private Button mLedButton;
 
     private static int motorState = 0;
     private static int ledState = 0;
 
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if (mBTService == null) {
+            mBTService = new BTService(this, mHandlerBT);
+
+            //apply defaults here too
+            mPrefs.edit().clear().apply();
+        }
+
+        mBTService.setHandler(mHandlerBT);
+        setContentView(R.layout.activity_main);
+        mPressureText = findViewById(R.id.pressureText);
+        mStatusText = findViewById(R.id.statusText);
+
+        //whenever this is called, update text displays to display their most recent text
+        updateTextViews();
+
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            Toast.makeText(AppDriver.this, "You don't seem to have bluetooth!" , Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        //request to turn on bluetooth if it's off
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
+
+        if (mBTService != null) {
+            // Only if the state is STATE_NONE, do we know that we haven't started already
+            if (mBTService.getState() == BTService.STATE_NONE) {
+                // Start the Bluetooth chat service in order to make connections
+                mBTService.start();
+            }
+        }
+
+        //Toast.makeText(AppDriver.this, "driver onCreate" , Toast.LENGTH_SHORT).show();
+    }
+
+    protected void onResume() {
+        super.onResume();
+        //Toast.makeText(AppDriver.this, "Main onResume", Toast.LENGTH_SHORT).show();
+        if(mBTService != null) {
+            syncSettings();
+        }
+    }
 
     //this thing is like our ambassador that we send to other activities to monitor and report back
     //returns and responses from other activities will end up here
 
     //msg.what --> What type of message is it?
     //msg.arg1 --> Arbitrary sub-type attached to message by sender
-    //msg.obj  --> The actual message contents
+    //msg.obj  --> The object that came attached to the message
 
     //toast responses to be replaced with actual code as needed
     @SuppressLint("HandlerLeak")
@@ -115,15 +162,12 @@ public class AppDriver extends AppCompatActivity {
                     break;
 
                 //if we get this message, msg.obj contains a spectrum reading.
-                //the server will send one large string (approx 8kilobyte)
-                //delimited by ';'
-
-                //originally attempted to stream 1024 single-reading packets but
-                //that method dropped a lot of data. Now trying 128 * 8 string method
+                //the server will send 128 strings with 8 values each. format:
+                //[command][offset];[val0];[val1]; .... ;[val7]
                 case defines.REQUEST_SPECTRA:
                     //Toast.makeText(AppDriver.this, "made it to requestSpectra", Toast.LENGTH_LONG).show();
-                    int index = 0;
-                    int k = 0;
+                    int index;
+                    int k;
 
                     //throw away the identifier byte and parse out the intensities.
                     //place parsed floats into tokens[] as strings
@@ -149,7 +193,7 @@ public class AppDriver extends AppCompatActivity {
                     int errIndex = 0;
                     if (offset == defines.NUM_WAVELENGTHS - 8) {
                         //Toast.makeText(AppDriver.this, "reached last index", Toast.LENGTH_LONG).show();
-                        errorCount = 0;
+                        int errorCount = 0;
                         for (k = 0; k < defines.NUM_WAVELENGTHS; k++) {
                             if ((int)spectrumArray[k] != k) {
                                 errorCount++;
@@ -194,64 +238,6 @@ public class AppDriver extends AppCompatActivity {
         }
     };
 
-
-    /*
-    upon creating this activity, check for bluetooth.
-
-     */
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        if (mBTService == null) {
-            mBTService = new BTService(this, mHandlerBT);
-
-            //apply defaults here too
-            mPrefs.edit().clear().apply();
-        }
-
-        mBTService.setHandler(mHandlerBT);
-        setContentView(R.layout.activity_main);
-        mPressureText = findViewById(R.id.pressureText);
-        mStatusText = findViewById(R.id.statusText);
-
-        //whenever this is called, update text displays to display their most recent text
-        updateTextViews();
-
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            Toast.makeText(AppDriver.this, "You don't seem to have bluetooth!" , Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
-        //request to turn on bluetooth if it's off
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-
-
-        if (mBTService != null) {
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mBTService.getState() == BTService.STATE_NONE) {
-                // Start the Bluetooth chat service in order to make connections
-                mBTService.start();
-            }
-        }
-
-        //Toast.makeText(AppDriver.this, "driver onCreate" , Toast.LENGTH_SHORT).show();
-    }
-
-    protected void onResume() {
-        super.onResume();
-        //Toast.makeText(AppDriver.this, "Main onResume", Toast.LENGTH_SHORT).show();
-        if(mBTService != null) {
-            syncSettings();
-        }
-
-    }
-
     public void bluetoothButtonResponse(View view) {
 
         //Toast.makeText(AppDriver.this, "OBSOLETE BUTTON LOL", Toast.LENGTH_SHORT).show();
@@ -268,7 +254,7 @@ public class AppDriver extends AppCompatActivity {
     }
 
     public void ledButtonResponse(View view) {
-        Button mButton = (Button)findViewById(R.id.ledButton);
+        Button mButton = findViewById(R.id.ledButton);
 
         if (mBTService.getState() == BTService.STATE_CONNECTED) {
             if(ledState == 0) {
@@ -345,7 +331,7 @@ public class AppDriver extends AppCompatActivity {
     }
 
     public void motorButtonResponse(View view) {
-        Button mButton = (Button)findViewById(R.id.motorButton);
+        Button mButton = findViewById(R.id.motorButton);
 
         if(motorState == 0) {
                 if (mBTService.getState() == BTService.STATE_CONNECTED) {

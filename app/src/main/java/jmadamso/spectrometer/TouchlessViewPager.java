@@ -1,3 +1,9 @@
+/*
+A viewPager subclass which has been modified to intercept/block
+touch input so that the user may still scroll horizontally
+within one of the tabs
+ */
+
 package jmadamso.spectrometer;
 
 import android.content.Context;
@@ -13,9 +19,14 @@ public class TouchlessViewPager extends ViewPager {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        performClick();
         return false;
     }
 
+    //just overriding this so lint doesn't yell at us
+    public boolean performClick() {
+        return super.performClick();
+    }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {

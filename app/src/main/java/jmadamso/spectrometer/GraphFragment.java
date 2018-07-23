@@ -31,8 +31,12 @@ public class GraphFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Bundle b = getArguments();
+        if(b == null) {
+            b = new Bundle();
+        }
         mSpectrumArray = b.getDoubleArray("spectrumArray");
         if(mSpectrumArray == null) {
+            mSpectrumArray = new double[defines.NUM_WAVELENGTHS];
             //default y=x if nothing was passed in
             for(int i = 0; i < defines.NUM_WAVELENGTHS; i++) {
                 mSpectrumArray[i] = i;
@@ -49,7 +53,9 @@ public class GraphFragment extends Fragment {
     }
 
     private void initGraph(GraphView graph) {
-
+        if(graph == null) {
+            return;
+        }
 
         // first series is a line
         DataPoint[] points = new DataPoint[defines.NUM_WAVELENGTHS];
