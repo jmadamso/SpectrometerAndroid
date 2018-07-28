@@ -20,9 +20,6 @@ public class ResultActivity extends AppCompatActivity {
             b = new Bundle();
         }
         //should this be a reference assign or a hard copy?? shrug
-        float herp[] = new float[123];
-        herp = b.getFloatArray("derp");
-
         double[] spectrumArray = b.getDoubleArray("spectrumArray");
 
 

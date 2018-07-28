@@ -1,14 +1,19 @@
 package jmadamso.spectrometer;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +32,7 @@ import java.util.Set;
 
 public class AppDriver extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1337;
+    private static final int CALIB_SCREEN_COMMANDS = 777;
 
     private SharedPreferences mPrefs;
     private BluetoothAdapter mBluetoothAdapter;
@@ -48,6 +54,11 @@ public class AppDriver extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        registerReceiver(mReceiver, filter);
+
+
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         if (mBTService == null) {
@@ -96,6 +107,287 @@ public class AppDriver extends AppCompatActivity {
             syncSettings();
         }
     }
+
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
+        mBluetoothAdapter.cancelDiscovery();
+
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        try {
+            super.onActivityResult(requestCode, resultCode, data);
+
+            //this guy gets called when the bluetooth request dialog
+            if (requestCode == REQUEST_ENABLE_BT) {
+                if(resultCode  == RESULT_OK){
+                    //Toast.makeText(AppDriver.this, "Bluetooth enabled after activity return",Toast.LENGTH_SHORT).show();
+                } else if (resultCode == RESULT_CANCELED) {
+                    Toast.makeText(AppDriver.this, "You need bluetooth for this!", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            } else if (requestCode == CALIB_SCREEN_COMMANDS) {
+                Toast.makeText(AppDriver.this, "calib returned " + resultCode, Toast.LENGTH_SHORT).show();
+
+                //now we switch to find out what command the calibration screen
+                //wants us to execute:
+                switch(resultCode) {
+
+                    //explicit calls to button response functions,
+                    //which tolerate being passed null.
+                    case defines.CAL_CMD_LED_BTN:
+                        ledButtonResponse(null);
+                        break;
+
+                    case defines.CAL_CMD_MOTOR_BTN:
+                        motorButtonResponse(null);
+                        break;
+
+                    case defines.CAL_CMD_STREAM_BTN:
+                        streamButtonResponse(null);
+                        break;
+
+                    default:
+
+                        break;
+                }
+            }
+        } catch (Exception ex) {
+            Toast.makeText(AppDriver.this, ex.toString(),Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+
+
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    // this guy will listen for when the discovery process comes
+    // back with whatever devices it found, and tries to connect
+    // if we see the one we want:
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                // Discovery has found a device. Get the BluetoothDevice
+                // object and its info from the Intent.
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                Toast.makeText(AppDriver.this, "discovery receiver found " + device.getAddress() , Toast.LENGTH_SHORT).show();
+
+                if (device.getName().equals("raspberrypi")) {
+                    mBluetoothAdapter.cancelDiscovery();
+                    Toast.makeText(AppDriver.this, "trying " + device.getName() +" after discovery", Toast.LENGTH_SHORT).show();
+                    mBTService.connect(mBluetoothAdapter.getRemoteDevice(device.getAddress()));
+                }
+                //String deviceName = device.getName();
+                //String deviceHardwareAddress = device.getAddress(); // MAC address
+            }
+        }
+    };
+
+
+    public void bluetoothButtonResponse(View view) {
+
+        //Toast.makeText(AppDriver.this, "OBSOLETE BUTTON LOL", Toast.LENGTH_SHORT).show();
+
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            byte[] b = new byte[1];
+            b[0] = defines.REQUEST_PRESSURE;
+            mBTService.write(b);
+            //Toast.makeText(AppDriver.this, "Turning motor ON", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    public void ledButtonResponse(View view) {
+        Button mButton = findViewById(R.id.ledButton);
+
+        if(ledState == 0) {
+            if (mBTService.getState() == BTService.STATE_CONNECTED) {
+                byte[] b = new byte[1];
+                b[0] = defines.LED_ON;
+                mBTService.write(b);
+                mButton.setText("LED Off");
+                Toast.makeText(AppDriver.this, "Turning LED ON", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+            }
+            ledState = 1;
+        } else {
+            if (mBTService.getState() == BTService.STATE_CONNECTED) {
+                byte[] b = new byte[1];
+                b[0] = defines.LED_OFF;
+                mBTService.write(b);
+                mButton.setText("LED On");
+                Toast.makeText(AppDriver.this, "Turning LED OFF", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+            }
+            ledState = 0;
+        }
+    }
+
+    public void viewSnapshotResponse(View view) {
+        //now take us to see result
+        Bundle b = new Bundle();
+        b.putDoubleArray("spectrumArray",spectrumArray);
+        Intent i = new Intent(getApplicationContext(), ResultActivity.class);
+        i.putExtras(b);
+        startActivity(i);
+    }
+
+    private void syncSettings() {
+        //format a settings string and send it
+        String settingsStr = defines.SETTINGS +
+                mPrefs.getString("num_scans_entry","") + ";" +
+                mPrefs.getString("scan_time_entry", "") + ";" +
+                mPrefs.getString("integration_time_entry", "") + ";" +
+                mPrefs.getString("boxcar_list", "") + ";" +
+                mPrefs.getString("averaging_list", "");
+
+        //toast with the final string
+        //Toast.makeText(AppDriver.this, settingsStr, Toast.LENGTH_SHORT).show();
+
+        //convert the string to a byte array, check if clear, then send
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            byte[] b = settingsStr.getBytes();
+            mBTService.write(b);
+        } else {
+            //Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    public void snapshotButtonResponse(View view) {
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            byte[] b = new byte[1];
+            b[0] = defines.REQUEST_SPECTRA;
+            mBTService.write(b);
+            Toast.makeText(AppDriver.this, "Requesting snapshot", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void startButtonResponse(View view) {
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            byte[] b = new byte[1];
+            b[0] = defines.START;
+            mBTService.write(b);
+            Toast.makeText(AppDriver.this, "trying to start exp", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void calibrateButtonResponse(View view) {
+        Intent i = new Intent(this, CalibrateActivity.class);
+        startActivityForResult(i, CALIB_SCREEN_COMMANDS);
+        //setContentView(R.layout.activity_calibrate);
+    }
+
+    public void settingsButtonResponse(View view) {
+            Intent i = new Intent(this, SettingsActivity.class);
+            startActivity(i);
+    }
+
+    public void motorButtonResponse(View view) {
+        Button mButton = findViewById(R.id.motorButton);
+
+        if(motorState == 0) {
+                if (mBTService.getState() == BTService.STATE_CONNECTED) {
+                    byte[] b = new byte[1];
+                    b[0] = defines.MOTOR_ON;
+                    mBTService.write(b);
+                    mButton.setText("Motor Off");
+                    Toast.makeText(AppDriver.this, "Turning motor ON", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+                }
+                motorState = 1;
+            } else {
+                if (mBTService.getState() == BTService.STATE_CONNECTED) {
+                    byte[] b = new byte[1];
+                    b[0] = defines.MOTOR_OFF;
+                    mBTService.write(b);
+                    mButton.setText("Motor On");
+                    Toast.makeText(AppDriver.this, "Turning motor OFF", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+                }
+                motorState = 0;
+            }
+
+    }
+
+    public void streamButtonResponse(View view) {
+
+
+    }
+
+    public void connectButtonResponse(View view) {
+
+        //SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        //String test = sharedPref.getString("boxcar_list", "");
+        //Toast.makeText(AppDriver.this, "boxcar val is " + test, Toast.LENGTH_SHORT).show();
+
+        //declare a set of devices and look through it for the pi
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+
+        if (pairedDevices.size() > 0) {
+            // There are paired devices. Get the name and address of each paired device.
+            for (BluetoothDevice device : pairedDevices) {
+                String deviceName = device.getName();
+                String deviceHardwareAddress = device.getAddress(); // MAC address
+                if (deviceName.equals("raspberrypi")) {
+                    BluetoothDevice device2 = mBluetoothAdapter.getRemoteDevice(deviceHardwareAddress);
+                    // Attempt to connect to the device if we find it. Service handles all connection
+                    //Toast.makeText(AppDriver.this, "trying " + deviceName , Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AppDriver.this, "trying " + deviceHardwareAddress + " before discovery", Toast.LENGTH_SHORT).show();
+                    mBTService.connect(device2);
+                    break;
+                }
+                //Toast.makeText(AppDriver.this, deviceHardwareAddress , Toast.LENGTH_SHORT).show();
+            }
+
+            //if we don't have the pi in our list of connected devices:
+            Toast.makeText(AppDriver.this, "no paired device found. trying discovery.", Toast.LENGTH_SHORT).show();
+
+            //this stuff ensures the app has permission to get the hardware descriptors from
+            //remote devices:
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    1);
+
+            //and finally start the discovery:
+            mBluetoothAdapter.startDiscovery();
+
+
+        } else {
+            //if we get here, the paired device list is 0 and we should still try discovery
+            Toast.makeText(AppDriver.this, "failed to find device" , Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    //update the status text according to the bluetooth service state
+    private void updateTextViews() {
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            mStatusText.setText("Bluetooth Status: Connected to " + mDeviceName);
+        } else if (mBTService.getState() == BTService.STATE_CONNECTING) {
+            mStatusText.setText("Bluetooth Status: Connecting");
+        } else if (mBTService.getState() == BTService.STATE_NONE) {
+            mStatusText.setText("Bluetooth Status: Not Connected");
+        }
+    }
+
+    //called by anything we start with startActivityForResult with the original request code.
+    //doesn't do much for us but we could add an activity to return a connected device later
+    //down the road. Maybe an activity for discovering the spectrometer box
+
+
+
 
     //this thing is like our ambassador that we send to other activities to monitor and report back
     //returns and responses from other activities will end up here
@@ -160,6 +452,8 @@ public class AppDriver extends AppCompatActivity {
                     mPressureText.setText("Current Pressure: " + pString);
                     //mPressureReading = Integer.parseInt(pString);
                     break;
+
+
 
                 //if we get this message, msg.obj contains a spectrum reading.
                 //the server will send 128 strings with 8 values each. format:
@@ -237,191 +531,5 @@ public class AppDriver extends AppCompatActivity {
             }
         }
     };
-
-    public void bluetoothButtonResponse(View view) {
-
-        //Toast.makeText(AppDriver.this, "OBSOLETE BUTTON LOL", Toast.LENGTH_SHORT).show();
-
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = new byte[1];
-            b[0] = defines.REQUEST_PRESSURE;
-            mBTService.write(b);
-            //Toast.makeText(AppDriver.this, "Turning motor ON", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
-
-    }
-
-    public void ledButtonResponse(View view) {
-        Button mButton = findViewById(R.id.ledButton);
-
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            if(ledState == 0) {
-                mButton.setText("LED Off");
-               ledState = 1;
-            } else {
-                mButton.setText("LED On");
-                ledState = 0;
-            }
-            byte[] b = new byte[1];
-            b[0] = defines.LED_TOGGLE;
-            mBTService.write(b);
-            Toast.makeText(AppDriver.this, "Toggling LED", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void viewSnapshotResponse(View view) {
-        //now take us to see result
-        Bundle b = new Bundle();
-        b.putDoubleArray("spectrumArray",spectrumArray);
-        Intent i = new Intent(getApplicationContext(), ResultActivity.class);
-        i.putExtras(b);
-        startActivity(i);
-    }
-
-    private void syncSettings() {
-        //format a settings string and send it
-        String settingsStr = defines.SETTINGS +
-                mPrefs.getString("num_scans_entry","") + ";" +
-                mPrefs.getString("scan_time_entry", "") + ";" +
-                mPrefs.getString("integration_time_entry", "") + ";" +
-                mPrefs.getString("boxcar_list", "") + ";" +
-                mPrefs.getString("averaging_list", "");
-
-        //toast with the final string
-        //Toast.makeText(AppDriver.this, settingsStr, Toast.LENGTH_SHORT).show();
-
-        //convert the string to a byte array, check if clear, then send
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = settingsStr.getBytes();
-            mBTService.write(b);
-        } else {
-            //Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
-
-    }
-
-    public void snapshotButtonResponse(View view) {
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = new byte[1];
-            b[0] = defines.REQUEST_SPECTRA;
-            mBTService.write(b);
-            Toast.makeText(AppDriver.this, "Requesting snapshot", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
-
-
-
-    }
-
-    public void syncButtonResponse(View view) {
-        //Toast.makeText(AppDriver.this, "OBSOLETE BUTTON LOL", Toast.LENGTH_SHORT).show();
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            syncSettings();
-        }
-    }
-
-    public void settingsButtonResponse(View view) {
-            Intent i = new Intent(this, SettingsActivity.class);
-            startActivity(i);
-    }
-
-    public void motorButtonResponse(View view) {
-        Button mButton = findViewById(R.id.motorButton);
-
-        if(motorState == 0) {
-                if (mBTService.getState() == BTService.STATE_CONNECTED) {
-                    byte[] b = new byte[1];
-                    b[0] = defines.MOTOR_ON;
-                    mBTService.write(b);
-                    mButton.setText("Motor Off");
-                    Toast.makeText(AppDriver.this, "Turning motor ON", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-                }
-                motorState = 1;
-            } else {
-                if (mBTService.getState() == BTService.STATE_CONNECTED) {
-                    byte[] b = new byte[1];
-                    b[0] = defines.MOTOR_OFF;
-                    mBTService.write(b);
-                    mButton.setText("Motor On");
-                    Toast.makeText(AppDriver.this, "Turning motor OFF", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-                }
-                motorState = 0;
-            }
-
-    }
-
-
-    public void startButtonResponse(View view) {
-
-        //SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        //String test = sharedPref.getString("boxcar_list", "");
-        //Toast.makeText(AppDriver.this, "boxcar val is " + test, Toast.LENGTH_SHORT).show();
-
-        //declare a set of devices and look through it for the pi
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            // There are paired devices. Get the name and address of each paired device.
-            for (BluetoothDevice device : pairedDevices) {
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress(); // MAC address
-                if (deviceName.equals("raspberrypi")) {
-                    BluetoothDevice device2 = mBluetoothAdapter.getRemoteDevice(deviceHardwareAddress);
-                    // Attempt to connect to the device if we find it. Service handles all connection
-                    Toast.makeText(AppDriver.this, "trying " + deviceName , Toast.LENGTH_SHORT).show();
-                    mBTService.connect(device2);
-                    break;
-                }
-                //Toast.makeText(AppDriver.this, deviceHardwareAddress , Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(AppDriver.this, "failed to find device" , Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    //update the status text according to the bluetooth service state
-    private void updateTextViews() {
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            mStatusText.setText("Bluetooth Status: Connected to " + mDeviceName);
-        } else if (mBTService.getState() == BTService.STATE_CONNECTING) {
-            mStatusText.setText("Bluetooth Status: Connecting");
-        } else if (mBTService.getState() == BTService.STATE_NONE) {
-            mStatusText.setText("Bluetooth Status: Not Connected");
-        }
-    }
-
-    //called by anything we start with startActivityForResult with the original request code.
-    //doesn't do much for us but we could add an activity to return a connected device later
-    //down the road. Maybe an activity for discovering the spectrometer box
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        try {
-            super.onActivityResult(requestCode, resultCode, data);
-
-            //this guy gets called when the bluetooth request dialog
-            if (requestCode == REQUEST_ENABLE_BT) {
-                if(resultCode  == RESULT_OK){
-                //Toast.makeText(AppDriver.this, "Bluetooth enabled after activity return",Toast.LENGTH_SHORT).show();
-                } else if (resultCode == RESULT_CANCELED) {
-                    Toast.makeText(AppDriver.this, "You need bluetooth for this!", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-            }
-
-
-        } catch (Exception ex) {
-            Toast.makeText(AppDriver.this, ex.toString(),Toast.LENGTH_SHORT).show();
-        }
-
-    }
-
-
 
 }

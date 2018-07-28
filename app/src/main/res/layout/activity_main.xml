@@ -14,7 +14,7 @@
         android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
-        android:onClick="startButtonResponse"
+        android:onClick="connectButtonResponse"
         android:text="Connect to Pi"
         app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintStart_toStartOf="parent" />
@@ -48,8 +48,8 @@
         android:layout_width="100dp"
         android:layout_height="60dp"
         android:layout_marginBottom="56dp"
-        android:layout_marginEnd="80dp"
-        android:layout_marginRight="80dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginRight="32dp"
         android:onClick="motorButtonResponse"
         android:text="Motor On"
         app:layout_constraintBottom_toTopOf="@+id/guideline3"
@@ -62,8 +62,8 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
-        android:onClick="syncButtonResponse"
-        android:text="sync settings"
+        android:onClick="calibrateButtonResponse"
+        android:text="calibrate"
         app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -151,5 +151,21 @@
         android:text="View Snapshot"
         app:layout_constraintBottom_toTopOf="@+id/guideline2"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="40dp"
+        android:onClick="startButtonResponse"
+        android:text="Start exp"
+        app:layout_constraintEnd_toStartOf="@+id/motorButton"
+        app:layout_constraintHorizontal_bias="0.425"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guideline" />
 
 </android.support.constraint.ConstraintLayout>

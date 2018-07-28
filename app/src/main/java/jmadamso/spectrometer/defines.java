@@ -18,13 +18,22 @@ public class defines {
     static final String TOAST = "toast";
 
     // Spectrometer commands. Identical to the enum on the pi side
-    static final char MOTOR_ON = '1';
-    static final char MOTOR_OFF = '2';
-    static final char REQUEST_PRESSURE = '3';
-    static final char REQUEST_SPECTRA = '4';
-    static final char SETTINGS = '5';
-    static final char QUIT = '6';
-    static final char LED_TOGGLE = '7';
+    static final char MOTOR_ON = 'a';
+    static final char MOTOR_OFF = 'b';
+    static final char LED_ON = 'c';
+    static final char LED_OFF = 'd';
+    static final char REQUEST_PRESSURE = 'e';
+    static final char REQUEST_SPECTRA = 'f';
+    static final char SETTINGS = 'g';
+    static final char CALIBRATE = 'h';
+    static final char START = 'i';
+    static final char STOP = 'j';
+
+    //calibration screen commands.
+    static final int CAL_CMD_LED_BTN = 1;
+    static final int CAL_CMD_MOTOR_BTN = 3;
+    static final int CAL_CMD_STREAM_BTN = 5;
+
 
     //size of array we expect for an entire spectrum reading.
     //1024 doubles * 8 bytes/double (as string) + 1 for ;

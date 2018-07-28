@@ -286,7 +286,10 @@ public class BTService {
 
                 //the following code skips that janky stuff and does it the right way, because
                 // the server was updated to use UUID:
-                tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                //insecure connection does not require pairing;
+                //secure connection does.
+                tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
+                //tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (Exception e) {
                 Log.e(TAG, "create() failed", e);
             }
