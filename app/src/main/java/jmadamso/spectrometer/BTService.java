@@ -288,8 +288,8 @@ public class BTService {
                 // the server was updated to use UUID:
                 //insecure connection does not require pairing;
                 //secure connection does.
-                tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
-                //tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                //tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
+                tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (Exception e) {
                 Log.e(TAG, "create() failed", e);
             }
@@ -398,16 +398,6 @@ public class BTService {
                             break;
                     }
 
-                    /*
-                    if(buffer[0] == defines.REQUEST_PRESSURE) {
-
-                    } else if (buffer[0] == defines.REQUEST_SPECTRA){
-
-                    } else {
-                        //
-
-                    }
-                    */
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
                     connectionLost();

@@ -115,6 +115,9 @@ public class AppDriver extends AppCompatActivity {
 
     }
 
+    //called by anything we start with startActivityForResult with the original request code.
+    //doesn't do much for us but we could add an activity to return a connected device later
+    //down the road. Maybe an activity for discovering the spectrometer box
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         try {
             super.onActivityResult(requestCode, resultCode, data);
@@ -162,7 +165,7 @@ public class AppDriver extends AppCompatActivity {
 
 
     // Create a BroadcastReceiver for ACTION_FOUND.
-    // this guy will listen for when the discovery process comes
+    // this guy will listen for when the BT discovery process comes
     // back with whatever devices it found, and tries to connect
     // if we see the one we want:
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -173,6 +176,7 @@ public class AppDriver extends AppCompatActivity {
                 // object and its info from the Intent.
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 Toast.makeText(AppDriver.this, "discovery receiver found " + device.getAddress() , Toast.LENGTH_SHORT).show();
+
 
                 if (device.getName().equals("raspberrypi")) {
                     mBluetoothAdapter.cancelDiscovery();
@@ -328,7 +332,7 @@ public class AppDriver extends AppCompatActivity {
     }
 
     public void connectButtonResponse(View view) {
-
+        int found = 0;
         //SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         //String test = sharedPref.getString("boxcar_list", "");
         //Toast.makeText(AppDriver.this, "boxcar val is " + test, Toast.LENGTH_SHORT).show();
@@ -347,22 +351,24 @@ public class AppDriver extends AppCompatActivity {
                     //Toast.makeText(AppDriver.this, "trying " + deviceName , Toast.LENGTH_SHORT).show();
                     Toast.makeText(AppDriver.this, "trying " + deviceHardwareAddress + " before discovery", Toast.LENGTH_SHORT).show();
                     mBTService.connect(device2);
+                    found = 1;
                     break;
                 }
                 //Toast.makeText(AppDriver.this, deviceHardwareAddress , Toast.LENGTH_SHORT).show();
             }
-
             //if we don't have the pi in our list of connected devices:
-            Toast.makeText(AppDriver.this, "no paired device found. trying discovery.", Toast.LENGTH_SHORT).show();
+            if (found == 0) {
+                Toast.makeText(AppDriver.this, "no paired device found. trying discovery.", Toast.LENGTH_SHORT).show();
 
-            //this stuff ensures the app has permission to get the hardware descriptors from
-            //remote devices:
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                    1);
+                //this stuff ensures the app has permission to get the hardware descriptors from
+                //remote devices. For some reason that's the same thing as location access.
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        1);
 
-            //and finally start the discovery:
-            mBluetoothAdapter.startDiscovery();
+                //and finally start the discovery:
+                mBluetoothAdapter.startDiscovery();
+            }
 
 
         } else {
@@ -382,9 +388,7 @@ public class AppDriver extends AppCompatActivity {
         }
     }
 
-    //called by anything we start with startActivityForResult with the original request code.
-    //doesn't do much for us but we could add an activity to return a connected device later
-    //down the road. Maybe an activity for discovering the spectrometer box
+
 
 
 
