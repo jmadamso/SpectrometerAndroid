@@ -175,14 +175,19 @@ public class AppDriver extends AppCompatActivity {
                 // Discovery has found a device. Get the BluetoothDevice
                 // object and its info from the Intent.
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                Toast.makeText(AppDriver.this, "discovery receiver found " + device.getAddress() , Toast.LENGTH_SHORT).show();
-
-
-                if (device.getName().equals("raspberrypi")) {
-                    mBluetoothAdapter.cancelDiscovery();
-                    Toast.makeText(AppDriver.this, "trying " + device.getName() +" after discovery", Toast.LENGTH_SHORT).show();
-                    mBTService.connect(mBluetoothAdapter.getRemoteDevice(device.getAddress()));
+                if(device.getName() != null) {
+                    Toast.makeText(AppDriver.this, "discovery receiver found " + device.getName() , Toast.LENGTH_SHORT).show();
+                    if (device.getName().equals("raspberrypi")) {
+                        mBluetoothAdapter.cancelDiscovery();
+                        Toast.makeText(AppDriver.this, "trying " + device.getName() +" after discovery", Toast.LENGTH_SHORT).show();
+                        mBTService.connect(mBluetoothAdapter.getRemoteDevice(device.getAddress()));
+                    }
+                } else {
+                    Toast.makeText(AppDriver.this, "discovery receiver found " + device.getAddress() , Toast.LENGTH_SHORT).show();
                 }
+
+
+
                 //String deviceName = device.getName();
                 //String deviceHardwareAddress = device.getAddress(); // MAC address
             }
@@ -473,8 +478,13 @@ public class AppDriver extends AppCompatActivity {
                     String tmpStr = new String(tmpBytes);
                     //Toast.makeText(AppDriver.this, "formed " + tmpStr + " at requestPressure", Toast.LENGTH_LONG).show();
 
-                    String delim = "[;]+";
+                    String delim = "[;f]+";
                     String[] tokens = tmpStr.split(delim);
+
+                    if(tokens.length >= 10) {
+                        //if we get here, two incoming strings got squished together
+
+                    }
 
                     int offset = Integer.parseInt(tokens[0]);
 

@@ -34,6 +34,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 
@@ -278,18 +279,18 @@ public class BTService {
 
                 //the following code uses reflection to create insecure connections
                 //with undocumented code
-                /*
+
                 Method method;
                 method = device.getClass().getMethod("createRfcommSocket", new Class[] { int.class } );
                 tmp = (BluetoothSocket) method.invoke(device, 1);
-                */
+
 
                 //the following code skips that janky stuff and does it the right way, because
                 // the server was updated to use UUID:
                 //insecure connection does not require pairing;
                 //secure connection does.
                 //tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
-                tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                //tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (Exception e) {
                 Log.e(TAG, "create() failed", e);
             }
@@ -387,6 +388,9 @@ public class BTService {
 
                         //server has sent spectrum reading
                         case defines.REQUEST_SPECTRA:
+
+
+
                             mHandler.obtainMessage(defines.REQUEST_SPECTRA, bytes, -1, buffer)
                                     .sendToTarget();
                             break;
