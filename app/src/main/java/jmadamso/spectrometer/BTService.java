@@ -395,6 +395,11 @@ public class BTService {
                                     .sendToTarget();
                             break;
 
+                        //server has sent current experiment status
+                        //case defines.EXP_STATUS:
+                        //    mHandler.obtainMessage(defines.EXP_STATUS, bytes, -1, buffer)
+                        //            .sendToTarget();
+                        //    break;
                         //server has sent some other message
                         default:
                             mHandler.obtainMessage(defines.MESSAGE_READ, bytes, -1, buffer)

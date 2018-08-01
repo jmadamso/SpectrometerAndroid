@@ -22,12 +22,18 @@ public class defines {
     static final char MOTOR_OFF = 'b';
     static final char LED_ON = 'c';
     static final char LED_OFF = 'd';
-    static final char REQUEST_PRESSURE = 'e';
-    static final char REQUEST_SPECTRA = 'f';
-    static final char SETTINGS = 'g';
-    static final char CALIBRATE = 'h';
-    static final char START = 'i';
-    static final char STOP = 'j';
+    static final char REQUEST_PRESSURE = 'e';   //toggle pressure stream
+    static final char REQUEST_SPECTRA = 'f';    //request one spectrum reading
+    static final char SETTINGS = 'g';           //apply or receive user settings
+    static final char CALIBRATE = 'h';          //stream continuous spectra
+    static final char EXP_START = 'i';          //begin the experiment
+    static final char EXP_STOP = 'j';           //stop the experiment
+    static final char EXP_STATUS = 'k';         //return status (available/running) and settings
+                                                    //of current experiment
+    static final char EXP_RESULTS = 'l';        //begin stream process of result array and all spectra
+    static final char EXP_LIST = 'm';           //return a list of completed experiments
+    static final char EXP_LOOKUP = 'n' ;        //begin stream process of specific experiment
+    static final char EXP_DELETE = 'o';         //remove a specific experiment
 
     //calibration screen commands.
     static final int CAL_CMD_LED_BTN = 1;

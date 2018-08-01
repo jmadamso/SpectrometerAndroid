@@ -38,9 +38,9 @@ public class GraphFragment extends Fragment {
         if(mSpectrumArray == null) {
             mSpectrumArray = new double[defines.NUM_WAVELENGTHS];
             //default y=x if nothing was passed in
-            for(int i = 0; i < defines.NUM_WAVELENGTHS; i++) {
-                mSpectrumArray[i] = i;
-            }
+            //for(int i = 0; i < defines.NUM_WAVELENGTHS; i++) {
+            //    mSpectrumArray[i] = i;
+            //}
         }
 
         View view = inflater.inflate(R.layout.view_graph, container, false);

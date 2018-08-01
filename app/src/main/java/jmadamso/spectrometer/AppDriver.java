@@ -20,7 +20,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 
@@ -227,8 +229,11 @@ public class AppDriver extends AppCompatActivity {
         } else {
             if (mBTService.getState() == BTService.STATE_CONNECTED) {
                 byte[] b = new byte[1];
-                b[0] = defines.LED_OFF;
+                //b[0] = defines.LED_OFF;
+                //mBTService.write(b);
+                b[0] = defines.EXP_STATUS;
                 mBTService.write(b);
+
                 mButton.setText("LED On");
                 Toast.makeText(AppDriver.this, "Turning LED OFF", Toast.LENGTH_SHORT).show();
             } else {
@@ -283,7 +288,7 @@ public class AppDriver extends AppCompatActivity {
     public void startButtonResponse(View view) {
         if (mBTService.getState() == BTService.STATE_CONNECTED) {
             byte[] b = new byte[1];
-            b[0] = defines.START;
+            b[0] = defines.EXP_START;
             mBTService.write(b);
             Toast.makeText(AppDriver.this, "trying to start exp", Toast.LENGTH_SHORT).show();
         } else {
@@ -478,40 +483,46 @@ public class AppDriver extends AppCompatActivity {
                     String tmpStr = new String(tmpBytes);
                     //Toast.makeText(AppDriver.this, "formed " + tmpStr + " at requestPressure", Toast.LENGTH_LONG).show();
 
-                    String delim = "[;f]+";
+                    String delim = "[;" + defines.REQUEST_SPECTRA + "]+";
                     String[] tokens = tmpStr.split(delim);
+                    ArrayList<String> tokenList = new ArrayList<String>(Arrays.asList(tokens));
 
-                    if(tokens.length >= 10) {
-                        //if we get here, two incoming strings got squished together
+                    if(tokenList.size() >= 10) {
+                        //Toast.makeText(AppDriver.this, "String[] size "+ tokens.length +" || ArrayList size " + tokenList.size(), Toast.LENGTH_LONG).show();
+
+                        //if we get here, incoming strings got squished together, so we need to remove
+                        //the index from the extra strings to place them as normal in the loop later.
+
+                        //loop backwards to get multiples of 9 out:
+                        for (int i = tokenList.size()-9; i >= 1; i-= 9) {
+                            tokenList.remove(i);
+                        }
+
+                        //Toast.makeText(AppDriver.this, tokenList.toString(), Toast.LENGTH_LONG).show();
 
                     }
 
-                    int offset = Integer.parseInt(tokens[0]);
+                    //int offset = Integer.parseInt(tokens[0]);
+                    int offset = Integer.parseInt(tokenList.get(0));
 
-                    //int offset = 0;
                     //Toast.makeText(AppDriver.this, "The offset is " + offset, Toast.LENGTH_LONG).show();
 
 
                     //now iterate through the tokens, grabbing floats.
-                    for (index = 0; index < tokens.length -1; index++) {
-                        spectrumArray[index + offset] = Float.parseFloat(tokens[index + 1]);
+                    for (index = 0; index < tokenList.size() -1; index++) {
+                        //spectrumArray[index + offset] = Float.parseFloat(tokens[index + 1]);
+                        //if(index+offset < spectrumArray.length)
+                            spectrumArray[index + offset] = Float.parseFloat(tokenList.get(index + 1));
+
                         //spectrumArray[index + offset] = 5; //Float.parseFloat(tokens[index + 1]);
                         //Toast.makeText(AppDriver.this, "Added" + spectrumArray[index+offset] + " at index " + (index+offset), Toast.LENGTH_LONG).show();
                     }
-                    int errIndex = 0;
-                    if (offset == defines.NUM_WAVELENGTHS - 8) {
-                        //Toast.makeText(AppDriver.this, "reached last index", Toast.LENGTH_LONG).show();
-                        int errorCount = 0;
-                        for (k = 0; k < defines.NUM_WAVELENGTHS; k++) {
-                            if ((int)spectrumArray[k] != k) {
-                                errorCount++;
-                                errIndex = k;
-                                //Toast.makeText(AppDriver.this, "errorcount++", Toast.LENGTH_LONG).show();
-                            }
-                        }
-                        Toast.makeText(AppDriver.this, "last spectra index reached", Toast.LENGTH_LONG).show();
-                        //Toast.makeText(AppDriver.this, "last error: index " + errIndex + " contains " + spectrumArray[errIndex], Toast.LENGTH_LONG).show();
 
+                    //if we hit this condition, we have received a complete spectrum.
+                    //the extra -1 is because the loop above left an extra increment with index++
+                    if (offset + index - 1 == defines.NUM_WAVELENGTHS - 1) {
+
+                        Toast.makeText(AppDriver.this, "last spectra index reached", Toast.LENGTH_LONG).show();
                         //now bundle the array and send it to result screen
                         Bundle b = new Bundle();
                         b.putDoubleArray("spectrumArray",spectrumArray);
@@ -524,11 +535,11 @@ public class AppDriver extends AppCompatActivity {
                 //if we get this message, we have received something
                 case defines.MESSAGE_READ:
                     //display the thing we received
-                    /*
+
                     byte[] readBuf = (byte[]) msg.obj;
                     String s2 = new String(readBuf);
                     Toast.makeText(AppDriver.this, "got " + s2 , Toast.LENGTH_LONG).show();
-                    */
+
                     break;
 
                 case defines.MESSAGE_DEVICE_NAME:
