@@ -13,8 +13,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -32,7 +38,7 @@ import java.util.Set;
  */
 
 
-public class AppDriver extends AppCompatActivity {
+public class AppDriver extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     private static final int REQUEST_ENABLE_BT = 1337;
     private static final int CALIB_SCREEN_COMMANDS = 777;
 
@@ -56,6 +62,21 @@ public class AppDriver extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+
+        //toolbar stuff:
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter);
@@ -71,7 +92,6 @@ public class AppDriver extends AppCompatActivity {
         }
 
         mBTService.setHandler(mHandlerBT);
-        setContentView(R.layout.activity_main);
         mPressureText = findViewById(R.id.pressureText);
         mStatusText = findViewById(R.id.statusText);
 
@@ -162,6 +182,29 @@ public class AppDriver extends AppCompatActivity {
             Toast.makeText(AppDriver.this, ex.toString(),Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        //have a look at what was selected:
+        if (id == R.id.nav_camera) {
+        } else if (id == R.id.nav_gallery) {
+            Toast.makeText(AppDriver.this, "oh lawrd", Toast.LENGTH_LONG).show();
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 
 
