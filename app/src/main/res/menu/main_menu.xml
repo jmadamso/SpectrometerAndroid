@@ -6,23 +6,28 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_camera"
+            android:id="@+id/nav_home"
             android:icon="@drawable/ic_info_black_24dp"
-            android:title="Import" />
+            android:title="Home"
+            android:checked="true"/>
         <item
-            android:id="@+id/nav_gallery"
+            android:id="@+id/nav_hardware"
             android:icon="@drawable/ic_info_black_24dp"
-            android:title="Gallery" />
+            android:title="Hardware" />
         <item
-            android:id="@+id/nav_slideshow"
+            android:id="@+id/nav_calibrate"
             android:icon="@drawable/ic_info_black_24dp"
-            android:title="Slideshow" />
+            android:title="Calibrate" />
         <item
-            android:id="@+id/nav_manage"
+            android:id="@+id/nav_experiment"
             android:icon="@drawable/ic_info_black_24dp"
-            android:title="Tools" />
+            android:title="New Experiment" />
+        <item
+            android:id="@+id/nav_browse"
+            android:icon="@drawable/ic_info_black_24dp"
+            android:title="Finished Experiments" />
     </group>
-
+<!--
     <item android:title="Communicate">
         <menu>
             <item
@@ -35,5 +40,6 @@
                 android:title="Send" />
         </menu>
     </item>
+-->
 
 </menu>

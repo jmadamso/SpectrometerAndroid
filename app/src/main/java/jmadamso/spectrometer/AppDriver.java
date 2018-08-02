@@ -15,6 +15,8 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -39,6 +41,7 @@ import java.util.Set;
 
 
 public class AppDriver extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+
     private static final int REQUEST_ENABLE_BT = 1337;
     private static final int CALIB_SCREEN_COMMANDS = 777;
 
@@ -63,7 +66,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        switchToFragment(R.id.nav_home);
 
         //toolbar stuff:
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -77,23 +80,26 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         navigationView.setNavigationItemSelectedListener(this);
 
 
-
+        //intentFilter allows this activity to listen for bluetooth device FOUND events
+        //by attaching mReceiver to it.
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter);
 
 
+
+
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        //this means we are first instantiating the BT service
         if (mBTService == null) {
             mBTService = new BTService(this, mHandlerBT);
-
             //apply defaults here too
             mPrefs.edit().clear().apply();
         }
 
         mBTService.setHandler(mHandlerBT);
-        mPressureText = findViewById(R.id.pressureText);
-        mStatusText = findViewById(R.id.statusText);
+        //mPressureText = findViewById(R.id.pressureText);
+        //mStatusText = findViewById(R.id.statusText);
 
         //whenever this is called, update text displays to display their most recent text
         updateTextViews();
@@ -125,6 +131,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     protected void onResume() {
         super.onResume();
         //Toast.makeText(AppDriver.this, "Main onResume", Toast.LENGTH_SHORT).show();
+        registerReceiver(mReceiver,new IntentFilter(BluetoothDevice.ACTION_FOUND));
         if(mBTService != null) {
             syncSettings();
         }
@@ -184,30 +191,74 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
     }
 
+    //this guy gets called anytime you select something from
+    //the side drawer (the "navigation drawer")
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
-        int id = item.getItemId();
+        //int id = item.getItemId();
 
-        //have a look at what was selected:
-        if (id == R.id.nav_camera) {
-        } else if (id == R.id.nav_gallery) {
-            Toast.makeText(AppDriver.this, "oh lawrd", Toast.LENGTH_LONG).show();
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        //this custom class switches the populated fragment to
+        //the one determined by the item that was clicked:
+        switchToFragment(item.getItemId());
         return true;
     }
 
 
+    private void switchToFragment(int id) {
+        Fragment fragment = null;
+        String title = getString(R.string.app_name);
+
+        switch (id) {
+            case R.id.nav_home:
+                fragment = new HomeFragment();
+                title  = "Spectrometer Home";
+
+                break;
+            case R.id.nav_hardware:
+                //fragment = new HomeFragment();
+                fragment = null;
+                setContentView(R.layout.activity_cluster);
+
+                title = "Hardware Control";
+                break;
+
+            case R.id.nav_calibrate:
+                //fragment = new HomeFragment();
+                fragment = null;
+                setContentView(R.layout.activity_calibrate);
+
+                title = "Calibration";
+                break;
+            case R.id.nav_experiment:
+                fragment = new ScrollFragment();
+                title = "New Experiment";
+                break;
+            case R.id.nav_browse:
+                fragment = new GraphFragment();
+                title = "Browse";
+                break;
+
+
+        }
+
+        if (fragment != null) {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.content_frame, fragment);
+            ft.commit();
+        }
+
+        // set the toolbar title
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(title);
+        }
+
+        //now find and close the drawer:
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer != null) {
+            drawer.closeDrawer(GravityCompat.START);
+        }
+    }
 
     // Create a BroadcastReceiver for ACTION_FOUND.
     // this guy will listen for when the BT discovery process comes
@@ -432,12 +483,15 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
     //update the status text according to the bluetooth service state
     private void updateTextViews() {
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            mStatusText.setText("Bluetooth Status: Connected to " + mDeviceName);
-        } else if (mBTService.getState() == BTService.STATE_CONNECTING) {
-            mStatusText.setText("Bluetooth Status: Connecting");
-        } else if (mBTService.getState() == BTService.STATE_NONE) {
-            mStatusText.setText("Bluetooth Status: Not Connected");
+
+        if(mStatusText != null) {
+            if (mBTService.getState() == BTService.STATE_CONNECTED) {
+                mStatusText.setText("Bluetooth Status: Connected to " + mDeviceName);
+            } else if (mBTService.getState() == BTService.STATE_CONNECTING) {
+                mStatusText.setText("Bluetooth Status: Connecting");
+            } else if (mBTService.getState() == BTService.STATE_NONE) {
+                mStatusText.setText("Bluetooth Status: Not Connected");
+            }
         }
     }
 
@@ -506,7 +560,9 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                     //Toast.makeText(AppDriver.this, "formed " + pString + " at requestPressure", Toast.LENGTH_LONG).show();
 
                     //write the pressure string to the reading
-                    mPressureText.setText("Current Pressure: " + pString);
+                    if(mPressureText != null) {
+                        mPressureText.setText("Current Pressure: " + pString);
+                    }
                     //mPressureReading = Integer.parseInt(pString);
                     break;
 

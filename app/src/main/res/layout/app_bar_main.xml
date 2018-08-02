@@ -21,8 +21,13 @@
     </android.support.design.widget.AppBarLayout>
 
 
-
-    <include layout="@layout/content_main" />
+    <!-- now put the actual frame layout in, to hold our fragments: -->
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:id="@+id/content_frame" />
 
 
 
