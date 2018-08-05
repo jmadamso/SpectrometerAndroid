@@ -35,15 +35,9 @@ public class defines {
     static final char EXP_LOOKUP = 'n' ;        //begin stream process of specific experiment
     static final char EXP_DELETE = 'o';         //remove a specific experiment
 
-    //calibration screen commands.
-    static final int CAL_CMD_LED_BTN = 1;
-    static final int CAL_CMD_MOTOR_BTN = 3;
-    static final int CAL_CMD_STREAM_BTN = 5;
 
 
-    //size of array we expect for an entire spectrum reading.
-    //1024 doubles * 8 bytes/double (as string) + 1 for ;
-    static final int SPECTRUM_ARRAY_SIZE = 1024;
+    static final int BT_STRING_SIZE = 1024;
     static final int NUM_WAVELENGTHS = 1024;
 
     static final double[] wavelengthArray = {
@@ -1072,7 +1066,4 @@ public class defines {
             822.33572,
             822.83122,
     };
-
-
-
 }

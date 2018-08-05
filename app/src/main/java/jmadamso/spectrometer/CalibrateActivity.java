@@ -49,7 +49,7 @@ public class CalibrateActivity extends AppCompatActivity {
             mButton.setText("Motor on");
             motorState = 0;
         }
-        setResult(defines.CAL_CMD_MOTOR_BTN);
+        //setResult(defines.CAL_CMD_MOTOR_BTN);
         //Toast.makeText(this, "Toggling Motor", Toast.LENGTH_SHORT).show();
         finish();
 
@@ -65,7 +65,7 @@ public class CalibrateActivity extends AppCompatActivity {
             mButton.setText("LED On");
             ledState = 0;
         }
-        setResult(defines.CAL_CMD_LED_BTN);
+        //setResult(defines.CAL_CMD_LED_BTN);
         //Toast.makeText(this, "Toggling LED", Toast.LENGTH_SHORT).show();
         finish();
 

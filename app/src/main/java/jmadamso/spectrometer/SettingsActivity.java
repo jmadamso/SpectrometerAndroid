@@ -62,9 +62,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 // simple string representation.
                 preference.setSummary(stringValue);
 
-            }
-
-
+        }
             return true;
         }
     };
@@ -109,8 +107,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
     protected void onPause() {
         super.onPause();
-
-
     }
 
     /**

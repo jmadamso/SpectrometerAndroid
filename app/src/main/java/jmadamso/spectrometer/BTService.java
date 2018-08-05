@@ -376,7 +376,7 @@ public class BTService {
             while (mState == STATE_CONNECTED) {
                 try {
                     // Read from the InputStream, resetting the buffer each time
-                    buffer = new byte[defines.SPECTRUM_ARRAY_SIZE + 1];
+                    buffer = new byte[defines.BT_STRING_SIZE];
                     bytes = mmInStream.read(buffer);
 
                     switch(buffer[0]){
@@ -388,18 +388,17 @@ public class BTService {
 
                         //server has sent spectrum reading
                         case defines.REQUEST_SPECTRA:
-
-
-
                             mHandler.obtainMessage(defines.REQUEST_SPECTRA, bytes, -1, buffer)
                                     .sendToTarget();
                             break;
 
                         //server has sent current experiment status
-                        //case defines.EXP_STATUS:
-                        //    mHandler.obtainMessage(defines.EXP_STATUS, bytes, -1, buffer)
-                        //            .sendToTarget();
-                        //    break;
+                        case defines.EXP_STATUS:
+                            mHandler.obtainMessage(defines.EXP_STATUS, bytes, -1, buffer)
+                                    .sendToTarget();
+                            break;
+
+
                         //server has sent some other message
                         default:
                             mHandler.obtainMessage(defines.MESSAGE_READ, bytes, -1, buffer)
