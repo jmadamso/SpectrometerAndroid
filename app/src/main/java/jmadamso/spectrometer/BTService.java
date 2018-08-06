@@ -215,8 +215,9 @@ public class BTService {
             if (mState != STATE_CONNECTED) return;
             r = mConnectedThread;
         }
-        // Perform the write unsynchronized
         r.write(out);
+        // Perform the write unsynchronized
+
     }
 
     /**

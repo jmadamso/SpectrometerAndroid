@@ -46,6 +46,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
     private static final int REQUEST_ENABLE_BT = 1337;
 
+    private boolean experimentRunning;
 
     private SharedPreferences mPrefs;
     private BluetoothAdapter mBluetoothAdapter;
@@ -56,23 +57,21 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
     private static double[] spectrumArray = new double[defines.NUM_WAVELENGTHS];
 
-    //the text displays at main page
-    private TextView mPressureText;
-    private TextView mStatusText;
 
 
     private static int motorState = 0;
     private static int ledState = 0;
 
     private String ExpStatusString = "Experiment Status:";
+    private String BTStatusString = "Bluetooth Status:";
 
-    private static int currentFragment = R.id.nav_home;
+    private static int currentFragmentID = R.id.nav_home;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        switchToFragment(currentFragment);
+        switchToFragment(currentFragmentID);
 
         //toolbar stuff:
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -101,12 +100,10 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
             mBTService = new BTService(this, mHandlerBT);
             //apply defaults here too
             mPrefs.edit().clear().apply();
+            PreferenceManager.setDefaultValues(this, R.xml.list_specsettings, false);
         }
 
         mBTService.setHandler(mHandlerBT);
-        mPressureText = findViewById(R.id.pressureText);
-        //mStatusText = findViewById(R.id.statusText);
-        mStatusText = findViewById(R.id.BTTextView);
 
         //whenever this is called, update text displays to display their most recent text
         updateTextViews();
@@ -167,6 +164,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                     finish();
                 }
             }
+
         } catch (Exception ex) {
             Toast.makeText(AppDriver.this, ex.toString(),Toast.LENGTH_SHORT).show();
         }
@@ -181,8 +179,8 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
         //this custom class switches the populated fragment to
         //the one determined by the item that was clicked:
-        currentFragment = item.getItemId();
-        switchToFragment(currentFragment);
+        currentFragmentID = item.getItemId();
+        switchToFragment(currentFragmentID);
         //updateTextViews();
         return true;
     }
@@ -199,11 +197,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
                 break;
             case R.id.nav_hardware:
-                //fragment = new HomeFragment();
-                fragment = null;
                 fragment = new HardwareFragment();
-                //setContentView(R.layout.activity_cluster);
-
                 title = "Hardware Control";
                 break;
 
@@ -215,7 +209,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                 title = "Calibration";
                 break;
             case R.id.nav_experiment:
-                fragment = new ScrollFragment();
+                fragment = new NewExperimentFragment();
                 title = "New Experiment";
                 break;
             case R.id.nav_browse:
@@ -233,7 +227,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         if (fragment != null) {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
-            ft.addToBackStack(null);
+            //ft.addToBackStack(null); //uncomment this if we want the back button to work
             ft.commit();
         }
 
@@ -277,11 +271,29 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         }
     };
 
+    private void sendCommandWithToast(char command,String toastStr) {
+        String cmd = "" + command;
+        sendStringWithToast(cmd,toastStr);
+    }
+
+    private void sendStringWithToast(String str,String toastStr) {
+
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            byte[] b = str.getBytes();
+            mBTService.write(b);
+            if(toastStr != null) {
+                Toast.makeText(AppDriver.this, toastStr, Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     public void bluetoothButtonResponse(View view) {
+        sendCommandWithToast(defines.REQUEST_PRESSURE,"Requesting Pressure");
 
-        //Toast.makeText(AppDriver.this, "OBSOLETE BUTTON LOL", Toast.LENGTH_SHORT).show();
-
+        /*
         if (mBTService.getState() == BTService.STATE_CONNECTED) {
             byte[] b = new byte[1];
             b[0] = defines.REQUEST_PRESSURE;
@@ -290,6 +302,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         } else {
             Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
         }
+        */
 
     }
 
@@ -339,19 +352,14 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                 mPrefs.getString("scan_time_entry", "") + ";" +
                 mPrefs.getString("integration_time_entry", "") + ";" +
                 mPrefs.getString("boxcar_list", "") + ";" +
-                mPrefs.getString("averaging_list", "");
+                mPrefs.getString("averaging_list", "") + ";" +
+                mPrefs.getString("doctor_name_entry","") + ";" +
+                mPrefs.getString("patient_name_entry", "");
 
         //toast with the final string
         //Toast.makeText(AppDriver.this, settingsStr, Toast.LENGTH_SHORT).show();
 
-        //convert the string to a byte array, check if clear, then send
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = settingsStr.getBytes();
-            mBTService.write(b);
-        } else {
-            //Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
-
+        sendStringWithToast(settingsStr,null);
     }
 
     public void snapshotButtonResponse(View view) {
@@ -366,15 +374,11 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     }
 
     public void startButtonResponse(View view) {
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = new byte[1];
-            b[0] = defines.EXP_START;
-            mBTService.write(b);
-            Toast.makeText(AppDriver.this, "trying to start exp", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
+
+        sendCommandWithToast(defines.EXP_START,"Starting Experiment!");
+        switchToFragment(R.id.nav_experiment);
     }
+
 
     public void calibrateButtonResponse(View view) {
         Intent i = new Intent(this, CalibrateActivity.class);
@@ -383,11 +387,10 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     }
 
     public void settingsButtonResponse(View view) {
-            Intent i = new Intent(this, SettingsActivity.class);
-            i.putExtra( AppCompatPreferenceActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.GeneralPreferenceFragment.class.getName() );
-            i.putExtra( PreferenceActivity.EXTRA_NO_HEADERS, true );
-
-            startActivity(i);
+        Intent i = new Intent(this, SettingsActivity.class);
+        i.putExtra( AppCompatPreferenceActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.GeneralPreferenceFragment.class.getName() );
+        i.putExtra( PreferenceActivity.EXTRA_NO_HEADERS, true );
+        startActivity(i);
     }
 
     public BTService getBTService() {
@@ -483,27 +486,22 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         TextView ExpTextView = findViewById(R.id.ExpTextView);
 
         if(BTTextView != null) {
-            if (mBTService.getState() == BTService.STATE_CONNECTED) {
-                BTTextView.setText("Bluetooth Status: Connected to " + mDeviceName);
-            } else if (mBTService.getState() == BTService.STATE_CONNECTING) {
-                BTTextView.setText("Bluetooth Status: Connecting");
-            } else if (mBTService.getState() == BTService.STATE_NONE) {
-                BTTextView.setText("Bluetooth Status: Not Connected");
-            }
+            BTTextView.setText(BTStatusString);
         }
 
         if(ExpTextView != null) {
             ExpTextView.setText(ExpStatusString);
-
         }
+    }
+
+    public boolean isRunningExperiment() {
+        return experimentRunning;
     }
 
 
 
 
-
-
-    //this thing is like our ambassador that we send to other activities to monitor and report back
+    //this thing is like our ambassador that we send to the BTService to monitor and report back
     //returns and responses from other activities will end up here
 
     //msg.what --> What type of message is it?
@@ -519,28 +517,27 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
             switch (msg.what) {
                 //if we get this message, we should update the display to reflect the state...
                 case defines.MESSAGE_STATE_CHANGE:
-                    updateTextViews();
                     //... and if we need to respond to specific state changes, do it here
                     switch (msg.arg1) {
                         case BTService.STATE_CONNECTED:
+                            BTStatusString = "Bluetooth Status: Connected to " + mDeviceName;
 
+                            //as soon as we connect, poll the device for its status
                             byte[] b = new byte[1];
                             b[0] = defines.EXP_STATUS;
                             mBTService.write(b);
-
                             //Toast.makeText(AppDriver.this, "Moved to state CONNECTED" , Toast.LENGTH_SHORT).show();
-                            //mStatusText.setText("Bluetooth Status: Connected");
                             break;
 
                         case BTService.STATE_CONNECTING:
+                            BTStatusString = "Bluetooth Status: Connecting";
                             //Toast.makeText(AppDriver.this, "Moved to state CONNECTING" , Toast.LENGTH_SHORT).show();
-                            //mStatusText.setText("Bluetooth Status: Connecting");
                             break;
 
                         case BTService.STATE_NONE:
-                            ExpStatusString = "Experiment status unavailable.";
+                            BTStatusString = "Bluetooth Status: Not Connected";
+                            ExpStatusString = "Experiment status unknown.";
                             //Toast.makeText(AppDriver.this, "Moved to state NONE" , Toast.LENGTH_SHORT).show();
-                            //mStatusText.setText("Bluetooth Status: Not Connected");
                             break;
                     }
                     break;
@@ -569,10 +566,10 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                     //Toast.makeText(AppDriver.this, "formed " + pString + " at requestPressure", Toast.LENGTH_LONG).show();
 
                     //write the pressure string to the reading
-                    if(mPressureText != null) {
-                        mPressureText.setText("Current Pressure: " + pString);
+                    TextView pressureTV = findViewById(R.id.pressureText);
+                    if(pressureTV != null) {
+                        pressureTV.setText("Current Pressure: " + pString);
                     }
-                    //mPressureReading = Integer.parseInt(pString);
                     break;
 
 
@@ -593,6 +590,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
                     String delim = "[;" + defines.REQUEST_SPECTRA + "]+";
                     String[] tokens = tmpStr.split(delim);
+                    //let's use a list for easy insert/delete:
                     ArrayList<String> tokenList = new ArrayList<String>(Arrays.asList(tokens));
 
                     if(tokenList.size() >= 10) {
@@ -642,11 +640,23 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
                 case defines.EXP_STATUS:
 
+                    //eventually we use this string to display everything about
+                    //the current experiment but for now just do status and result string
+
                     byte[] statusBytes = Arrays.copyOfRange((byte[]) msg.obj, 1, ((byte[]) msg.obj).length);
                     tmpStr = new String(statusBytes);
                     delim = "[;]+";
                     tokens = tmpStr.split(delim);
                     ExpStatusString = tokens[tokens.length-1];
+                    //Toast.makeText(AppDriver.this, "status bit = " + tokens[0] , Toast.LENGTH_LONG).show();
+
+                    if(tokens[0].equals("0")) {
+                        experimentRunning = false;
+                        ExpStatusString = "The device is available.\n" + ExpStatusString;
+                    } else {
+                        experimentRunning = true;
+                        ExpStatusString = "The device is running an experiment.\n" + ExpStatusString;
+                    }
                     updateTextViews();
                     break;
 
@@ -663,6 +673,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                 case defines.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
                     mDeviceName = msg.getData().getString(defines.DEVICE_NAME);
+                    BTStatusString = "Bluetooth Status: Connected to " + mDeviceName;
                     //Toast.makeText(getApplicationContext(), "connected to " + str, Toast.LENGTH_SHORT).show();
                     updateTextViews();
                     break;
@@ -672,6 +683,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                     Toast.makeText(getApplicationContext(), msg.getData().getString(defines.TOAST), Toast.LENGTH_SHORT).show();
                     break;
             }
+            updateTextViews();
         }
     };
 

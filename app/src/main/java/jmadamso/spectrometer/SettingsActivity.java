@@ -185,6 +185,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("num_scans_entry"));
             bindPreferenceSummaryToValue(findPreference("scan_time_entry"));
             bindPreferenceSummaryToValue(findPreference("integration_time_entry"));
+            bindPreferenceSummaryToValue(findPreference("doctor_name_entry"));
+            bindPreferenceSummaryToValue(findPreference("patient_name_entry"));
+
 
 
         }
