@@ -179,7 +179,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // guidelines.
 
             //BASICALLY: set the descriptor to the value of the setting
-            //bindPreferenceSummaryToValue(findPreference("boxcar_width_entry"));
+            //to let us see it
             bindPreferenceSummaryToValue(findPreference("boxcar_list"));
             bindPreferenceSummaryToValue(findPreference("averaging_list"));
             bindPreferenceSummaryToValue(findPreference("num_scans_entry"));

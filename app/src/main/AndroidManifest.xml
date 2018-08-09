@@ -39,13 +39,6 @@
             android:parentActivityName=".AppDriver"
             android:theme="@style/AppTheme" />
 
-        <activity
-            android:name=".CalibrateActivity"
-            android:launchMode="singleTask"
-            android:parentActivityName=".AppDriver"
-            android:label = "Calibrate"  />
-
-
     </application>
 
 </manifest>

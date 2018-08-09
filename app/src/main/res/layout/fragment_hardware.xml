@@ -8,34 +8,60 @@
     tools:context=".HardwareFragment">
 
     <Button
-        android:id="@+id/motorButton"
+        android:id="@+id/motorButtonOn"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:layout_marginBottom="56dp"
-        android:onClick="motorButtonResponse"
+        android:layout_marginBottom="8dp"
+        android:onClick="motorOnButtonResponse"
         android:text="Motor On" />
 
     <Button
-        android:id="@+id/ledButton"
+        android:id="@+id/motorButtonOff"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:layout_marginBottom="56dp"
-        android:onClick="ledButtonResponse"
+        android:layout_marginBottom="8dp"
+        android:onClick="motorOffButtonResponse"
+        android:text="Motor Off" />
+
+    <Button
+        android:id="@+id/ledButtonOn"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="ledOnButtonResponse"
         android:text="LED On" />
 
     <Button
-        android:id="@+id/BTButton"
+        android:id="@+id/ledButtonOff"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:layout_marginBottom="16dp"
-        android:onClick="bluetoothButtonResponse"
+        android:layout_marginBottom="8dp"
+        android:onClick="ledOffButtonResponse"
+        android:text="LED off" />
+
+    <Button
+        android:id="@+id/snapshotButton"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="snapshotButtonResponse"
+        android:text="Snapchot" />
+
+    <Button
+        android:id="@+id/pressureButton"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="pressureButtonResponse"
         android:text="Start Pressure Read" />
 
     <TextView
         android:id="@+id/pressureText"
-        android:layout_width="357dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
 
         android:text="Pressure:" />
+
+
 
 </LinearLayout>

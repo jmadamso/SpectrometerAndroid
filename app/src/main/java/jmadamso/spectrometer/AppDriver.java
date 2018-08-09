@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -22,7 +23,9 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,7 +49,13 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
     private static final int REQUEST_ENABLE_BT = 1337;
 
-    private boolean experimentRunning;
+    //experimentRunning is set when we get status updates from the server.
+    //updates somewhat asynchronously when interacting with the bluetooth
+    //service/handler,so we can usually trust it is up to date. fragments
+    //can access this via the public function isExperimentRunning() if they
+
+
+    private static boolean experimentRunning;
 
     private SharedPreferences mPrefs;
     private BluetoothAdapter mBluetoothAdapter;
@@ -58,76 +67,37 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     private static double[] spectrumArray = new double[defines.NUM_WAVELENGTHS];
 
 
+    private static String ExpStatusString = "Experiment Status: Unknown";
+    private static String BTStatusString = "Bluetooth Status: Unknown";
 
-    private static int motorState = 0;
-    private static int ledState = 0;
-
-    private String ExpStatusString = "Experiment Status:";
-    private String BTStatusString = "Bluetooth Status:";
-
+    //keeps track of which fragment we are displaying.
+    //indexed by nav. drawer id's
     private static int currentFragmentID = R.id.nav_home;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         switchToFragment(currentFragmentID);
 
-        //toolbar stuff:
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
+        //get the navigation gui business going
+        navDrawerSetup();
 
         //intentFilter allows this activity to listen for bluetooth device FOUND events
         //by attaching mReceiver to it.
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter);
 
-
-
-
+        //our handle to the pool of preferences available to the whole app package
+        //if we try to access preferences before running the settings activity, we seem
+        //to not have the preferences, not even defaults. need to add the prefences in this activity, and then
+        //see if changing them in the settings activity properly overwrites defaults we set here.
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        //this means we are first instantiating the BT service
-        if (mBTService == null) {
-            mBTService = new BTService(this, mHandlerBT);
-            //apply defaults here too
-            mPrefs.edit().clear().apply();
-            PreferenceManager.setDefaultValues(this, R.xml.list_specsettings, false);
-        }
-
-        mBTService.setHandler(mHandlerBT);
 
         //whenever this is called, update text displays to display their most recent text
         updateTextViews();
-
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            Toast.makeText(AppDriver.this, "You don't seem to have bluetooth!" , Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
-        //request to turn on bluetooth if it's off
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-
-
-        if (mBTService != null) {
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mBTService.getState() == BTService.STATE_NONE) {
-                // Start the Bluetooth chat service in order to make connections
-                mBTService.start();
-            }
-        }
+        bluetoothSetup();
 
         //Toast.makeText(AppDriver.this, "driver onCreate" , Toast.LENGTH_SHORT).show();
     }
@@ -145,7 +115,6 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         super.onDestroy();
         unregisterReceiver(mReceiver);
         mBluetoothAdapter.cancelDiscovery();
-
     }
 
     //called by anything we start with startActivityForResult with the original request code.
@@ -184,7 +153,6 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         //updateTextViews();
         return true;
     }
-
 
     private void switchToFragment(int id) {
         Fragment fragment = null;
@@ -271,120 +239,40 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         }
     };
 
-    private void sendCommandWithToast(char command,String toastStr) {
-        String cmd = "" + command;
-        sendStringWithToast(cmd,toastStr);
-    }
-
-    private void sendStringWithToast(String str,String toastStr) {
-
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = str.getBytes();
-            mBTService.write(b);
-            if(toastStr != null) {
-                Toast.makeText(AppDriver.this, toastStr, Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
-    }
 
 
-    public void bluetoothButtonResponse(View view) {
+
+    public void pressureButtonResponse(View view) {
         sendCommandWithToast(defines.REQUEST_PRESSURE,"Requesting Pressure");
-
-        /*
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = new byte[1];
-            b[0] = defines.REQUEST_PRESSURE;
-            mBTService.write(b);
-            //Toast.makeText(AppDriver.this, "Turning motor ON", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
-        */
-
     }
 
-    public void ledButtonResponse(View view) {
-        Button mButton = findViewById(R.id.ledButton);
-
-        if(ledState == 0) {
-            if (mBTService.getState() == BTService.STATE_CONNECTED) {
-                byte[] b = new byte[1];
-                b[0] = defines.LED_ON;
-                mBTService.write(b);
-                mButton.setText("LED Off");
-                Toast.makeText(AppDriver.this, "Turning LED ON", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-            }
-            ledState = 1;
-        } else {
-            if (mBTService.getState() == BTService.STATE_CONNECTED) {
-                byte[] b = new byte[1];
-                b[0] = defines.LED_OFF;
-                mBTService.write(b);
-
-                mButton.setText("LED On");
-                Toast.makeText(AppDriver.this, "Turning LED OFF", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-            }
-            ledState = 0;
-        }
+    public void ledOnButtonResponse(View view) {
+        sendCommandWithToast(defines.LED_ON,"Turning on LED");
     }
 
-    public void viewSnapshotResponse(View view) {
-        //now take us to see result
-        Bundle b = new Bundle();
-        b.putDoubleArray("spectrumArray",spectrumArray);
-        Intent i = new Intent(getApplicationContext(), ResultActivity.class);
-        i.putExtras(b);
-        startActivity(i);
-    }
-
-    //private helper function to zap a settings string across
-    private void syncSettings() {
-        //format a settings string and send it
-        String settingsStr = defines.SETTINGS +
-                mPrefs.getString("num_scans_entry","") + ";" +
-                mPrefs.getString("scan_time_entry", "") + ";" +
-                mPrefs.getString("integration_time_entry", "") + ";" +
-                mPrefs.getString("boxcar_list", "") + ";" +
-                mPrefs.getString("averaging_list", "") + ";" +
-                mPrefs.getString("doctor_name_entry","") + ";" +
-                mPrefs.getString("patient_name_entry", "");
-
-        //toast with the final string
-        //Toast.makeText(AppDriver.this, settingsStr, Toast.LENGTH_SHORT).show();
-
-        sendStringWithToast(settingsStr,null);
+    public void ledOffButtonResponse(View view) {
+        sendCommandWithToast(defines.LED_OFF,"Turning off LED");
     }
 
     public void snapshotButtonResponse(View view) {
-        if (mBTService.getState() == BTService.STATE_CONNECTED) {
-            byte[] b = new byte[1];
-            b[0] = defines.REQUEST_SPECTRA;
-            mBTService.write(b);
-            Toast.makeText(AppDriver.this, "Requesting snapshot", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-        }
+        sendCommandWithToast(defines.REQUEST_SPECTRA,"Requesting snapshot");
     }
 
+    //start an alert to confirm the experiment. alert dialog will start the experiment.
     public void startButtonResponse(View view) {
-
-        sendCommandWithToast(defines.EXP_START,"Starting Experiment!");
-        switchToFragment(R.id.nav_experiment);
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Experiment")
+                .setMessage(getSettingsString())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Start", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        sendCommandWithToast(defines.EXP_START,"Starting Experiment!");
+                        switchToFragment(R.id.nav_home);
+                    }})
+                .show();
     }
 
-
-    public void calibrateButtonResponse(View view) {
-        Intent i = new Intent(this, CalibrateActivity.class);
-        //startActivityForResult(i, CALIB_SCREEN_COMMANDS);
-        //setContentView(R.layout.activity_calibrate);
-    }
 
     public void settingsButtonResponse(View view) {
         Intent i = new Intent(this, SettingsActivity.class);
@@ -393,41 +281,12 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         startActivity(i);
     }
 
-    public BTService getBTService() {
-        return mBTService;
+    public void motorOnButtonResponse(View view) {
+        sendCommandWithToast(defines.MOTOR_ON,"Turning on motor");
     }
 
-    public void motorButtonResponse(View view) {
-        Button mButton = findViewById(R.id.motorButton);
-        if(motorState == 0) {
-                if (mBTService.getState() == BTService.STATE_CONNECTED) {
-                    byte[] b = new byte[1];
-                    b[0] = defines.MOTOR_ON;
-                    mBTService.write(b);
-                    mButton.setText("Motor Off");
-                    Toast.makeText(AppDriver.this, "Turning motor ON", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-                }
-                motorState = 1;
-            } else {
-                if (mBTService.getState() == BTService.STATE_CONNECTED) {
-                    byte[] b = new byte[1];
-                    b[0] = defines.MOTOR_OFF;
-                    mBTService.write(b);
-                    mButton.setText("Motor On");
-                    Toast.makeText(AppDriver.this, "Turning motor OFF", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
-                }
-                motorState = 0;
-            }
-
-    }
-
-    public void streamButtonResponse(View view) {
-
-
+    public void motorOffButtonResponse(View view){
+        sendCommandWithToast(defines.MOTOR_OFF,"Turning off motor");
     }
 
     public void connectButtonResponse(View view) {
@@ -447,8 +306,8 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                 if (deviceName.equals("raspberrypi")) {
                     BluetoothDevice device2 = mBluetoothAdapter.getRemoteDevice(deviceHardwareAddress);
                     // Attempt to connect to the device if we find it. Service handles all connection
-                    //Toast.makeText(AppDriver.this, "trying " + deviceName , Toast.LENGTH_SHORT).show();
-                    Toast.makeText(AppDriver.this, "trying " + deviceHardwareAddress + " before discovery", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AppDriver.this, "trying " + deviceName , Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(AppDriver.this, "trying " + deviceHardwareAddress + " before discovery", Toast.LENGTH_SHORT).show();
                     mBTService.connect(device2);
                     found = 1;
                     break;
@@ -480,7 +339,42 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         }
     }
 
-    //update the status text according to the bluetooth service state
+    private void syncSettings() {
+        //format a settings string and send it. arg2 = default string
+        String settingsCommandStr = defines.SETTINGS +
+                mPrefs.getString("num_scans_entry","5") + ";" +
+                mPrefs.getString("scan_time_entry", "60") + ";" +
+                mPrefs.getString("integration_time_entry", "1000") + ";" +
+                mPrefs.getString("boxcar_list", "0") + ";" +
+                mPrefs.getString("averaging_list", "3") + ";" +
+                mPrefs.getString("doctor_name_entry","Dr. Smith") + ";" +
+                mPrefs.getString("patient_name_entry", "John Doe");
+
+        //toast with the final string
+        //Toast.makeText(AppDriver.this, settingsStr, Toast.LENGTH_SHORT).show();
+        sendStringWithToast(settingsCommandStr,null);
+    }
+
+    private void sendCommandWithToast(char command,String toastStr) {
+        String cmd = "" + command;
+        sendStringWithToast(cmd,toastStr);
+    }
+
+    private void sendStringWithToast(String str,String toastStr) {
+
+        if (mBTService.getState() == BTService.STATE_CONNECTED) {
+            byte[] b = str.getBytes();
+            mBTService.write(b);
+            if(toastStr != null) {
+                Toast.makeText(AppDriver.this, toastStr, Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(AppDriver.this, "Bluetooth not connected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    //update the status text according to the bluetooth and experiment states
+    //public so our fragments can use it.
     public void updateTextViews() {
         TextView BTTextView = findViewById(R.id.BTTextView);
         TextView ExpTextView = findViewById(R.id.ExpTextView);
@@ -492,6 +386,10 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         if(ExpTextView != null) {
             ExpTextView.setText(ExpStatusString);
         }
+    }
+
+    public BTService getBTService() {
+        return mBTService;
     }
 
     public boolean isRunningExperiment() {
@@ -542,16 +440,6 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                     }
                     break;
 
-                //if we get this message, we have written something to the buffer.
-                //note, everything we write across a socket is BYTES so we have to convert to strings
-                case defines.MESSAGE_WRITE:
-                    //display the thing we got:
-                    /*
-                    byte[] writeBuf = (byte[]) msg.obj;
-                    String s1 = new String(writeBuf);
-                    Toast.makeText(AppDriver.this, "sent " + s1 , Toast.LENGTH_LONG).show();
-                    */
-                    break;
 
                 //if we get this message, we have received the pressure reading. So we update
                 //the user.
@@ -615,49 +503,31 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
 
                     //now iterate through the tokens, grabbing floats.
-                    for (index = 0; index < tokenList.size() -1; index++) {
-                        //spectrumArray[index + offset] = Float.parseFloat(tokens[index + 1]);
-                        //if(index+offset < spectrumArray.length)
+                    for (index = 0; index < tokenList.size() - 1; index++) {
                             spectrumArray[index + offset] = Float.parseFloat(tokenList.get(index + 1));
-
-                        //spectrumArray[index + offset] = 5; //Float.parseFloat(tokens[index + 1]);
-                        //Toast.makeText(AppDriver.this, "Added" + spectrumArray[index+offset] + " at index " + (index+offset), Toast.LENGTH_LONG).show();
                     }
 
                     //if we hit this condition, we have received a complete spectrum.
                     //the extra -1 is because the loop above left an extra increment with index++
                     if (offset + index - 1 == defines.NUM_WAVELENGTHS - 1) {
-
                         Toast.makeText(AppDriver.this, "last spectra index reached", Toast.LENGTH_LONG).show();
-                        //now bundle the array and send it to result screen
-                        Bundle b = new Bundle();
-                        b.putDoubleArray("spectrumArray",spectrumArray);
-                        Intent i = new Intent(getApplicationContext(), ResultActivity.class);
-                        i.putExtras(b);
-                        startActivity(i);
+                        onSpectrumReceived();
                     }
                     break;
 
                 case defines.EXP_STATUS:
+                    onExperimentStatusChange(msg.obj);
+                    break;
 
-                    //eventually we use this string to display everything about
-                    //the current experiment but for now just do status and result string
-
-                    byte[] statusBytes = Arrays.copyOfRange((byte[]) msg.obj, 1, ((byte[]) msg.obj).length);
-                    tmpStr = new String(statusBytes);
-                    delim = "[;]+";
-                    tokens = tmpStr.split(delim);
-                    ExpStatusString = tokens[tokens.length-1];
-                    //Toast.makeText(AppDriver.this, "status bit = " + tokens[0] , Toast.LENGTH_LONG).show();
-
-                    if(tokens[0].equals("0")) {
-                        experimentRunning = false;
-                        ExpStatusString = "The device is available.\n" + ExpStatusString;
-                    } else {
-                        experimentRunning = true;
-                        ExpStatusString = "The device is running an experiment.\n" + ExpStatusString;
-                    }
-                    updateTextViews();
+                //if we get this message, we have written something to the buffer.
+                //note, everything we write across a socket is BYTES so we have to convert to strings
+                case defines.MESSAGE_WRITE:
+                    //display the thing we sent to server:
+                    /*
+                    byte[] writeBuf = (byte[]) msg.obj;
+                    String s1 = new String(writeBuf);
+                    Toast.makeText(AppDriver.this, "sent " + s1 , Toast.LENGTH_LONG).show();
+                    */
                     break;
 
                 //if we get this message, we have received something else
@@ -687,4 +557,105 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         }
     };
 
+    private void navDrawerSetup() {
+
+        //toolbar stuff:
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void bluetoothSetup () {
+
+        if (mBTService == null) {
+            //this means we are first instantiating the BT service
+            mBTService = new BTService(this, mHandlerBT);
+            //apply defaults here too
+            mPrefs.edit().clear().apply();
+            PreferenceManager.setDefaultValues(this, R.xml.list_specsettings, false);
+        }
+
+        mBTService.setHandler(mHandlerBT);
+
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            Toast.makeText(AppDriver.this, "You don't seem to have bluetooth!" , Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        //request to turn on bluetooth if it's off
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
+        if (mBTService != null) {
+            //if we haven't got our service up and running, do it now:
+            if (mBTService.getState() == BTService.STATE_NONE) {
+                mBTService.start();
+            }
+        }
+    }
+
+    private void onExperimentStatusChange(Object commandString) {
+        //eventually we use this string to display everything about
+        //the current experiment but for now just do status and result string
+        byte[] statusBytes = Arrays.copyOfRange((byte[]) commandString, 1, ((byte[]) commandString).length);
+        String tmpStr = new String(statusBytes);
+        String delim = "[;]+";
+        String[] tokens = tmpStr.split(delim);
+        ExpStatusString = tokens[tokens.length-1];
+        //Toast.makeText(AppDriver.this, "status bit = " + tokens[0] , Toast.LENGTH_LONG).show();
+
+        if(tokens[0].equals("0")) {
+            if(experimentRunning) {
+
+                //tale action here for moving to IDLE
+
+                experimentRunning = false;
+            }
+        } else {
+            if(!experimentRunning) {
+
+                //take action here for moving to BUSY
+
+                experimentRunning = true;
+            }
+        }
+        updateTextViews();
+        //reload current fragment to update:
+        switchToFragment(currentFragmentID);
+    }
+
+    private void onSpectrumReceived() {
+        //This code will start a new activity with the received spectrum. Moved away
+        //from this model, and the activity probably doesn't exist in the project now,
+        // but it's useful to see how to do it:
+        //now bundle the array and send it to result screen
+        Bundle b = new Bundle();
+        b.putDoubleArray("spectrumArray",spectrumArray);
+        Intent i = new Intent(getApplicationContext(), ResultActivity.class);
+        i.putExtras(b);
+        startActivity(i);
+    }
+
+    public String getSettingsString() {
+        return "Doctor Name: " + mPrefs.getString("doctor_name_entry","NO ENTRY") + "\n" +
+                "Patient ID: " + mPrefs.getString("patient_name_entry","NO ENTRY") + "\n" +
+                "Scans to Take: " + mPrefs.getString("num_scans_entry","3") + "\n" +
+                "Time Between Scans: " + mPrefs.getString("scan_time_entry","60") + " seconds\n" +
+                "Integration Time: " + mPrefs.getString("integration_time_entry","1000") + "\n" +
+                "Boxcar Width: " + mPrefs.getString("boxcar_list","1") + "\n" +
+                "Averages per Scan: " + mPrefs.getString("averaging_list","3") + "\n";
+    }
+
+    public String getExpStatusString() {
+        return ExpStatusString;
+    }
 }

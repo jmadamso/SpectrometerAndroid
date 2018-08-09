@@ -16,11 +16,6 @@ import android.widget.Toast;
  * A simple {@link Fragment} subclass.
  */
 public class HomeFragment extends Fragment {
-    private TextView BTStatusText;
-    private TextView ExpStatusText;
-    private BTService mBTService;
-    private AppDriver parent;
-
 
     public HomeFragment() {
         // Required empty public constructor
@@ -37,16 +32,8 @@ public class HomeFragment extends Fragment {
                              Bundle savedInstanceState) {
         //Toast.makeText(getActivity(), "fragment view created" , Toast.LENGTH_SHORT).show();
 
-
         //instantiate the view from an xml layout and get references to its ui stuff:
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-
-        //BTStatusText = view.findViewById(R.id.BTTextView);
-        //ExpStatusText = view.findViewById(R.id.ExpTextView);
-        //mBTService = ((AppDriver)getActivity()).getBTService();
-        //parent = (AppDriver)getActivity();
-
-        return view;
+       return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
     public void onStart() {

@@ -32,17 +32,23 @@ public class HardwareFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        //instantiate the view from an xml layout:
-        View view = inflater.inflate(R.layout.fragment_hardware, container, false);
+        return inflater.inflate(R.layout.fragment_hardware, container, false);
+    }
 
-        //work on the views like this:
-        //TextView tv = view.findViewById(R.id.welcomeTV);
-        //tv.setText("hello!);
 
-        //and use stuff from AppDriver super-activity (IE: BTSERVICE) like this:
-        //int i = ((AppDriver)getActivity()).publicMethod;
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        AppDriver a = (AppDriver)getActivity();
+        BTService b = a.getBTService();
+        if (b != null) {
+            //shortcut to convert char -> string -> byte array for serial
+            b.write(("" + defines.MOTOR_OFF).getBytes());
+            b.write(("" + defines.LED_OFF).getBytes());
+            //b.write(defines.STOP_STREAM);
 
-        return view;
+        }
+        Toast.makeText(getActivity(), "Resetting hardware controls", Toast.LENGTH_SHORT).show();
     }
 
 

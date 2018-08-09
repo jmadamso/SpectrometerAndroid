@@ -40,7 +40,7 @@
         android:title="Time Between Scans (seconds)" />
 
     <EditTextPreference
-        android:defaultValue="1000"
+        android:defaultValue="500"
         android:inputType="number"
         android:key="integration_time_entry"
         android:maxLines="1"
@@ -50,7 +50,7 @@
 
     <ListPreference
         android:defaultValue="0"
-        android:entries="@array/integers09"
+        android:entries="@array/integers19"
         android:entryValues="@array/integers09"
         android:key="boxcar_list"
         android:negativeButtonText="@null"
@@ -59,7 +59,7 @@
 
     <ListPreference
     android:defaultValue="3"
-    android:entries="@array/integers09"
+    android:entries="@array/integers19"
     android:entryValues="@array/integers09"
     android:key="averaging_list"
     android:negativeButtonText="@null"
