@@ -23,14 +23,14 @@ public class defines {
     static final char LED_ON = 'c';
     static final char LED_OFF = 'd';
     static final char REQUEST_PRESSURE = 'e';   //toggle pressure stream
-    static final char REQUEST_SPECTRA = 'f';    //request one spectrum reading
-    static final char SETTINGS = 'g';           //apply or receive user settings
-    static final char CALIBRATE = 'h';          //stream continuous spectra
-    static final char EXP_START = 'i';          //begin the experiment
-    static final char EXP_STOP = 'j';           //stop the experiment
-    static final char EXP_STATUS = 'k';         //return status (available/running) and settings
+    static final char SNAPSHOT = 'f';    //request one spectrum reading
+    static final char START_STREAM = 'g';
+    static final char STOP_STREAM = 'h';          //stream continuous spectra
+    static final char SETTINGS = 'i';           //apply or receive user settings
+    static final char EXP_START = 'j';          //begin the experiment
+    static final char EXP_STOP = 'k';           //stop the experiment
+    static final char EXP_STATUS = 'l';         //return status (available/running) and settings
                                                     //of current experiment
-    static final char EXP_RESULTS = 'l';        //begin stream process of result array and all spectra
     static final char EXP_LIST = 'm';           //return a list of completed experiments
     static final char EXP_LOOKUP = 'n' ;        //begin stream process of specific experiment
     static final char EXP_DELETE = 'o';         //remove a specific experiment

@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -25,17 +24,16 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Set;
 
 
@@ -107,7 +105,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         //Toast.makeText(AppDriver.this, "Main onResume", Toast.LENGTH_SHORT).show();
         registerReceiver(mReceiver,new IntentFilter(BluetoothDevice.ACTION_FOUND));
         if(mBTService != null) {
-            syncSettings();
+            syncSettings(false);
         }
     }
 
@@ -255,7 +253,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     }
 
     public void snapshotButtonResponse(View view) {
-        sendCommandWithToast(defines.REQUEST_SPECTRA,"Requesting snapshot");
+        sendCommandWithToast(defines.SNAPSHOT,"Requesting snapshot");
     }
 
     //start an alert to confirm the experiment. alert dialog will start the experiment.
@@ -267,8 +265,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Start", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        sendCommandWithToast(defines.EXP_START,"Starting Experiment!");
-                        switchToFragment(R.id.nav_home);
+                        syncSettings(true);
                     }})
                 .show();
     }
@@ -339,20 +336,26 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         }
     }
 
-    private void syncSettings() {
-        //format a settings string and send it. arg2 = default string
-        String settingsCommandStr = defines.SETTINGS +
-                mPrefs.getString("num_scans_entry","5") + ";" +
-                mPrefs.getString("scan_time_entry", "60") + ";" +
-                mPrefs.getString("integration_time_entry", "1000") + ";" +
-                mPrefs.getString("boxcar_list", "0") + ";" +
-                mPrefs.getString("averaging_list", "3") + ";" +
-                mPrefs.getString("doctor_name_entry","Dr. Smith") + ";" +
-                mPrefs.getString("patient_name_entry", "John Doe");
 
-        //toast with the final string
-        //Toast.makeText(AppDriver.this, settingsStr, Toast.LENGTH_SHORT).show();
-        sendStringWithToast(settingsCommandStr,null);
+
+    private void syncSettings(boolean start) {
+
+            String settingsCommandStr =
+                    defines.SETTINGS +
+                    mPrefs.getString("num_scans_entry","") + ";" +
+                    mPrefs.getString("scan_time_entry", "") + ";" +
+                    mPrefs.getString("integration_time_entry", "") + ";" +
+                    mPrefs.getString("boxcar_list", "") + ";" +
+                    mPrefs.getString("averaging_list", "") + ";" +
+                    mPrefs.getString("doctor_name_entry","") + ";" +
+                    mPrefs.getString("patient_name_entry", "") + ";" +
+                    Calendar.getInstance().getTimeInMillis();
+
+            if(start) {
+                settingsCommandStr = settingsCommandStr + ";Engage Thrusters";
+            }
+
+            sendStringWithToast(settingsCommandStr,null);
     }
 
     private void sendCommandWithToast(char command,String toastStr) {
@@ -465,7 +468,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                 //if we get this message, msg.obj contains a spectrum reading.
                 //the server will send 128 strings with 8 values each. format:
                 //[command][offset];[val0];[val1]; .... ;[val7]
-                case defines.REQUEST_SPECTRA:
+                case defines.SNAPSHOT:
                     //Toast.makeText(AppDriver.this, "made it to requestSpectra", Toast.LENGTH_LONG).show();
                     int index;
                     int k;
@@ -476,7 +479,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                     String tmpStr = new String(tmpBytes);
                     //Toast.makeText(AppDriver.this, "formed " + tmpStr + " at requestPressure", Toast.LENGTH_LONG).show();
 
-                    String delim = "[;" + defines.REQUEST_SPECTRA + "]+";
+                    String delim = "[;" + defines.SNAPSHOT + "]+";
                     String[] tokens = tmpStr.split(delim);
                     //let's use a list for easy insert/delete:
                     ArrayList<String> tokenList = new ArrayList<String>(Arrays.asList(tokens));
@@ -577,9 +580,16 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
             //this means we are first instantiating the BT service
             mBTService = new BTService(this, mHandlerBT);
             //apply defaults here too
-            mPrefs.edit().clear().apply();
-            PreferenceManager.setDefaultValues(this, R.xml.list_specsettings, false);
-        }
+
+
+            mPrefs.edit().putString("boxcar_list","oh").apply();
+            mPrefs.edit().putString("averaging_list","my").apply();
+            mPrefs.edit().putString("num_scans_entry","god").apply();
+            mPrefs.edit().putString("scan_time_entry","why").apply();
+            mPrefs.edit().putString("integration_time_entry","wont").apply();
+            mPrefs.edit().putString("doctor_name_entry","you").apply();
+            mPrefs.edit().putString("patient_name_entry","work").apply();
+            }
 
         mBTService.setHandler(mHandlerBT);
 
@@ -646,13 +656,13 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     }
 
     public String getSettingsString() {
-        return "Doctor Name: " + mPrefs.getString("doctor_name_entry","NO ENTRY") + "\n" +
-                "Patient ID: " + mPrefs.getString("patient_name_entry","NO ENTRY") + "\n" +
-                "Scans to Take: " + mPrefs.getString("num_scans_entry","3") + "\n" +
-                "Time Between Scans: " + mPrefs.getString("scan_time_entry","60") + " seconds\n" +
-                "Integration Time: " + mPrefs.getString("integration_time_entry","1000") + "\n" +
-                "Boxcar Width: " + mPrefs.getString("boxcar_list","1") + "\n" +
-                "Averages per Scan: " + mPrefs.getString("averaging_list","3") + "\n";
+        return "Doctor Name: " + mPrefs.getString("doctor_name_entry","") + "\n" +
+                "Patient ID: " + mPrefs.getString("patient_name_entry","") + "\n" +
+                "Scans to Take: " + mPrefs.getString("num_scans_entry","") + "\n" +
+                "Time Between Scans: " + mPrefs.getString("scan_time_entry","") + " seconds\n" +
+                "Integration Time: " + mPrefs.getString("integration_time_entry","") + "\n" +
+                "Boxcar Width: " + mPrefs.getString("boxcar_list","") + "\n" +
+                "Averages per Scan: " + mPrefs.getString("averaging_list","") + "\n";
     }
 
     public String getExpStatusString() {

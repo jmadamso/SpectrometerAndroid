@@ -388,8 +388,8 @@ public class BTService {
                             break;
 
                         //server has sent spectrum reading
-                        case defines.REQUEST_SPECTRA:
-                            mHandler.obtainMessage(defines.REQUEST_SPECTRA, bytes, -1, buffer)
+                        case defines.SNAPSHOT:
+                            mHandler.obtainMessage(defines.SNAPSHOT, bytes, -1, buffer)
                                     .sendToTarget();
                             break;
 
