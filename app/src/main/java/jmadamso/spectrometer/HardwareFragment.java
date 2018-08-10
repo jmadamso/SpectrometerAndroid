@@ -43,8 +43,9 @@ public class HardwareFragment extends Fragment {
         BTService b = a.getBTService();
         if (b != null) {
             //shortcut to convert char -> string -> byte array for serial
-            b.write(("" + defines.MOTOR_OFF).getBytes());
-            b.write(("" + defines.LED_OFF).getBytes());
+            //kind of a bummer they get smashed together though
+            //b.write(("" + defines.MOTOR_OFF).getBytes());
+            //b.write(("" + defines.LED_OFF).getBytes());
             //b.write(defines.STOP_STREAM);
 
         }

@@ -58,6 +58,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     private SharedPreferences mPrefs;
     private BluetoothAdapter mBluetoothAdapter;
     private static String mDeviceName;
+    private static ArrayList<String> mExperimentList = new ArrayList<>();
 
     //making this static keeps connections when changing orientation or something else
     private static BTService mBTService = null;
@@ -179,12 +180,16 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                 title = "New Experiment";
                 break;
             case R.id.nav_browse:
-                fragment = new GraphFragment();
-                title = "Browse";
+                fragment = new ResultFragment();
+
+                Bundle args = new Bundle();
+                args.putStringArrayList("experiment_list",mExperimentList );
+                fragment.setArguments(args);
+                title = "Browse Experiments";
                 break;
 
             default:
-                Toast.makeText(AppDriver.this, "How did you get here?", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AppDriver.this, "Are you lost? How did you get here?", Toast.LENGTH_SHORT).show();
                 break;
 
 
@@ -520,6 +525,23 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
                 case defines.EXP_STATUS:
                     onExperimentStatusChange(msg.obj);
+                    break;
+
+                case defines.EXP_LIST:
+                    tmpBytes = Arrays.copyOfRange((byte[]) msg.obj, 1, (((byte[]) msg.obj).length) + 1);
+                    tmpStr = new String(tmpBytes);
+                    if(tmpStr.contains("Header")) {
+                        mExperimentList.clear();
+
+                    } else if (tmpStr.contains("Footer")){
+                        currentFragmentID = R.id.nav_browse;
+                        switchToFragment(currentFragmentID);
+                    } else {
+                        mExperimentList.add(tmpStr);
+                    }
+
+
+                    //Date date=new Date(millis)
                     break;
 
                 //if we get this message, we have written something to the buffer.
