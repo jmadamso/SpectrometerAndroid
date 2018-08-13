@@ -5,7 +5,7 @@
     <EditTextPreference
         android:defaultValue="Doctor Smith"
         android:inputType="textPersonName|textCapWords"
-        android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM-"
+        android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM- 0123456789"
         android:key="doctor_name_entry"
         android:maxLines="1"
         android:selectAllOnFocus="true"
@@ -15,7 +15,7 @@
     <EditTextPreference
         android:defaultValue="John Doe"
         android:inputType="textPersonName|textCapWords"
-        android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM-"
+        android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM- 0123456789"
         android:key="patient_name_entry"
         android:maxLines="1"
         android:selectAllOnFocus="true"

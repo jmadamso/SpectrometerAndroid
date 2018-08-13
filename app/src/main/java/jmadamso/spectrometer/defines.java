@@ -35,7 +35,7 @@ class defines {
     static final char EXP_LOOKUP = 'n' ;        //begin stream process of specific experiment
     static final char EXP_DELETE = 'o';         //remove a specific experiment
 
-
+    static final char HARDWARE_OFF = 'p';
 
     static final int BT_STRING_SIZE = 1024;
     static final int NUM_WAVELENGTHS = 1024;

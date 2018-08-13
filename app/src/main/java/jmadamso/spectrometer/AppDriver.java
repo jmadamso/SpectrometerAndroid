@@ -349,8 +349,8 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                     mPrefs.getString("integration_time_entry", "") + ";" +
                     mPrefs.getString("boxcar_list", "") + ";" +
                     mPrefs.getString("averaging_list", "") + ";" +
-                    mPrefs.getString("doctor_name_entry","") + ";" +
-                    mPrefs.getString("patient_name_entry", "") + ";" +
+                    mPrefs.getString("doctor_name_entry","Doctor Name") + ";" +
+                    mPrefs.getString("patient_name_entry", "Patient ID") + ";" +
                     Calendar.getInstance().getTimeInMillis();
 
             if(start) {
@@ -616,8 +616,8 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
             mPrefs.edit().putString("num_scans_entry","5").apply();
             mPrefs.edit().putString("scan_time_entry","5").apply();
             mPrefs.edit().putString("integration_time_entry","1000").apply();
-            mPrefs.edit().putString("doctor_name_entry","DOCTOR NAME").apply();
-            mPrefs.edit().putString("patient_name_entry","PATIENT NAME").apply();
+            mPrefs.edit().putString("doctor_name_entry","").apply();
+            mPrefs.edit().putString("patient_name_entry","").apply();
             }
 
         mBTService.setHandler(mHandlerBT);
