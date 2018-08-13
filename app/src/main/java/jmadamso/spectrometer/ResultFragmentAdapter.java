@@ -6,7 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
-public class ResultFragmentAdapter extends FragmentPagerAdapter {
+class ResultFragmentAdapter extends FragmentPagerAdapter {
 
     private Context mContext;
     private double[] mArray;

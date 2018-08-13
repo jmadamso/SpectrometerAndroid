@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -105,6 +106,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         super.onResume();
         //Toast.makeText(AppDriver.this, "Main onResume", Toast.LENGTH_SHORT).show();
         registerReceiver(mReceiver,new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        switchToFragment(currentFragmentID);
         if(mBTService != null) {
             syncSettings(false);
         }
@@ -141,7 +143,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
     //this guy gets called anytime you select something from
     //the side drawer (the "navigation drawer")
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         //int id = item.getItemId();
 
@@ -189,10 +191,8 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                 break;
 
             default:
-                Toast.makeText(AppDriver.this, "Are you lost? How did you get here?", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AppDriver.this, "Are you lost? How did you get here? (switchToFragment)", Toast.LENGTH_SHORT).show();
                 break;
-
-
         }
 
         if (fragment != null) {
@@ -208,7 +208,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         }
 
         //now find and close the drawer:
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer != null) {
             drawer.closeDrawer(GravityCompat.START);
         }
@@ -293,9 +293,6 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
 
     public void connectButtonResponse(View view) {
         int found = 0;
-        //SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        //String test = sharedPref.getString("boxcar_list", "");
-        //Toast.makeText(AppDriver.this, "boxcar val is " + test, Toast.LENGTH_SHORT).show();
 
         //declare a set of devices and look through it for the pi
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
@@ -386,6 +383,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     public void updateTextViews() {
         TextView BTTextView = findViewById(R.id.BTTextView);
         TextView ExpTextView = findViewById(R.id.ExpTextView);
+        TextView SettingsTextView = findViewById(R.id.settingsText);
 
         if(BTTextView != null) {
             BTTextView.setText(BTStatusString);
@@ -394,6 +392,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         if(ExpTextView != null) {
             ExpTextView.setText(ExpStatusString);
         }
+
     }
 
     public BTService getBTService() {
@@ -403,6 +402,11 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
     public boolean isRunningExperiment() {
         return experimentRunning;
     }
+
+    public boolean isConnected() {
+        return mBTService.getState() == BTService.STATE_CONNECTED;
+    }
+
 
 
 
@@ -432,6 +436,9 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                             byte[] b = new byte[1];
                             b[0] = defines.EXP_STATUS;
                             mBTService.write(b);
+
+                            currentFragmentID = R.id.nav_experiment;
+                            switchToFragment(currentFragmentID);
                             //Toast.makeText(AppDriver.this, "Moved to state CONNECTED" , Toast.LENGTH_SHORT).show();
                             break;
 
@@ -487,7 +494,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                     String delim = "[;" + defines.SNAPSHOT + "]+";
                     String[] tokens = tmpStr.split(delim);
                     //let's use a list for easy insert/delete:
-                    ArrayList<String> tokenList = new ArrayList<String>(Arrays.asList(tokens));
+                    ArrayList<String> tokenList = new ArrayList<>(Arrays.asList(tokens));
 
                     if(tokenList.size() >= 10) {
                         //Toast.makeText(AppDriver.this, "String[] size "+ tokens.length +" || ArrayList size " + tokenList.size(), Toast.LENGTH_LONG).show();
@@ -603,14 +610,14 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
             mBTService = new BTService(this, mHandlerBT);
             //apply defaults here too
 
-
-            mPrefs.edit().putString("boxcar_list","oh").apply();
-            mPrefs.edit().putString("averaging_list","my").apply();
-            mPrefs.edit().putString("num_scans_entry","god").apply();
-            mPrefs.edit().putString("scan_time_entry","why").apply();
-            mPrefs.edit().putString("integration_time_entry","wont").apply();
-            mPrefs.edit().putString("doctor_name_entry","you").apply();
-            mPrefs.edit().putString("patient_name_entry","work").apply();
+            //one day, add logic to apply different presets, and do it here and HERE ONLY
+            mPrefs.edit().putString("boxcar_list","1").apply();
+            mPrefs.edit().putString("averaging_list","1").apply();
+            mPrefs.edit().putString("num_scans_entry","5").apply();
+            mPrefs.edit().putString("scan_time_entry","5").apply();
+            mPrefs.edit().putString("integration_time_entry","1000").apply();
+            mPrefs.edit().putString("doctor_name_entry","DOCTOR NAME").apply();
+            mPrefs.edit().putString("patient_name_entry","PATIENT NAME").apply();
             }
 
         mBTService.setHandler(mHandlerBT);
@@ -648,7 +655,7 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         if(tokens[0].equals("0")) {
             if(experimentRunning) {
 
-                //tale action here for moving to IDLE
+                //take action here for moving to IDLE
 
                 experimentRunning = false;
             }
@@ -661,8 +668,10 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
             }
         }
         updateTextViews();
-        //reload current fragment to update:
-        switchToFragment(currentFragmentID);
+        if(currentFragmentID == R.id.nav_experiment) {
+            //if we are still on the exp screen, update it
+            switchToFragment(currentFragmentID);
+        }
     }
 
     private void onSpectrumReceived() {

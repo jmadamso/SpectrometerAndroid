@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +31,7 @@ public class HardwareFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_hardware, container, false);
     }
@@ -40,7 +41,11 @@ public class HardwareFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         AppDriver a = (AppDriver)getActivity();
-        BTService b = a.getBTService();
+        BTService b = null;
+        if (a!= null) {
+            b = a.getBTService();
+        }
+
         if (b != null) {
             //shortcut to convert char -> string -> byte array for serial
             //kind of a bummer they get smashed together though

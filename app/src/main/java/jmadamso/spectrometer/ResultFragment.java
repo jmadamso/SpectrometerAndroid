@@ -2,6 +2,7 @@ package jmadamso.spectrometer;
 
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,7 +27,7 @@ public class ResultFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         //do we have args?
         Bundle b = getArguments();
@@ -34,7 +35,7 @@ public class ResultFragment extends Fragment {
         if (b != null) {
             experimentTitles = b.getStringArrayList("experiment_list");
         } else {
-            experimentTitles = new ArrayList<String>();
+            experimentTitles = new ArrayList<>();
             experimentTitles.add("well");
             experimentTitles.add("here");
             experimentTitles.add("we");
@@ -76,9 +77,17 @@ public class ResultFragment extends Fragment {
 
         //request bluetooth list of things here
         AppDriver parent = (AppDriver)getActivity();
-        BTService b = parent.getBTService();
+        BTService b = null;
+        if (parent!= null) {
+            b = parent.getBTService();
+
+        }
         String str = "" + defines.EXP_LIST;
-        b.write(str.getBytes());
+        if(b != null) {
+            b.write(str.getBytes());
+        } else {
+            //toast the error
+        }
     }
 
 }

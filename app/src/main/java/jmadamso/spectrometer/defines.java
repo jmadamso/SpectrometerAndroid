@@ -5,7 +5,7 @@ package jmadamso.spectrometer;
  * Holds constants, message types, and commands
  */
 
-public class defines {
+class defines {
     // BTService outgoing messages
     static final int MESSAGE_STATE_CHANGE = 1;
     static final int MESSAGE_READ = 2;

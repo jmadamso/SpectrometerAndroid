@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,7 +18,7 @@ import android.widget.TextView;
  */
 public class NewExperimentFragment extends Fragment {
 
-    View myView;
+    private View myView;
 
     public NewExperimentFragment() {
         // Required empty public constructor
@@ -41,7 +42,7 @@ public class NewExperimentFragment extends Fragment {
         int color;
         AppDriver parent = (AppDriver) getActivity();
 
-        if (parent.isRunningExperiment()) {
+        if (parent != null ? parent.isRunningExperiment() : false) {
             availability = "DEVICE UNAVAILABLE";
             description = parent.getExpStatusString();
             color = Color.RED;
