@@ -150,6 +150,14 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         //this custom class switches the populated fragment to
         //the one determined by the item that was clicked:
         currentFragmentID = item.getItemId();
+
+        //if we want to browse experiments, send the request:
+        if(currentFragmentID == R.id.nav_browse) {
+            String str = "" + defines.EXP_LIST;
+            if(mBTService != null) {
+                mBTService.write(str.getBytes());
+            }
+        }
         switchToFragment(currentFragmentID);
         //updateTextViews();
         return true;
@@ -537,9 +545,9 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
                 case defines.EXP_LIST:
                     tmpBytes = Arrays.copyOfRange((byte[]) msg.obj, 1, (((byte[]) msg.obj).length) + 1);
                     tmpStr = new String(tmpBytes);
+
                     if(tmpStr.contains("Header")) {
                         mExperimentList.clear();
-
                     } else if (tmpStr.contains("Footer")){
                         currentFragmentID = R.id.nav_browse;
                         switchToFragment(currentFragmentID);
@@ -616,8 +624,8 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
             mPrefs.edit().putString("num_scans_entry","5").apply();
             mPrefs.edit().putString("scan_time_entry","5").apply();
             mPrefs.edit().putString("integration_time_entry","1000").apply();
-            mPrefs.edit().putString("doctor_name_entry","").apply();
-            mPrefs.edit().putString("patient_name_entry","").apply();
+            mPrefs.edit().putString("doctor_name_entry","DOCTOR NAME").apply();
+            mPrefs.edit().putString("patient_name_entry","PATIENT ID").apply();
             }
 
         mBTService.setHandler(mHandlerBT);

@@ -20,7 +20,6 @@ import java.util.Arrays;
  */
 public class ResultFragment extends Fragment {
 
-
     public ResultFragment() {
         // Required empty public constructor
     }
@@ -36,13 +35,11 @@ public class ResultFragment extends Fragment {
             experimentTitles = b.getStringArrayList("experiment_list");
         } else {
             experimentTitles = new ArrayList<>();
-            experimentTitles.add("well");
+            experimentTitles.add("default");
+            experimentTitles.add("experiment");
+            experimentTitles.add("list");
+            experimentTitles.add("goes");
             experimentTitles.add("here");
-            experimentTitles.add("we");
-            experimentTitles.add("go");
-            experimentTitles.add("again");
-            experimentTitles.add("nice");
-            experimentTitles.add("job!");
         }
 
 
@@ -52,17 +49,16 @@ public class ResultFragment extends Fragment {
         LinearLayout layout = v.findViewById(R.id.linear_layout);
         if (layout != null && experimentTitles != null) {
             for (final String s : experimentTitles) {
-
+                final int index = experimentTitles.indexOf(s);
                 Button btn = new Button(getContext());
                 btn.setText(s);
                 btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Toast.makeText(getContext(), "you clicked " + s, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "you clicked button " + index, Toast.LENGTH_SHORT).show();
                     }
                 });
                 layout.addView(btn, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-
                 }
             }
 
@@ -74,20 +70,21 @@ public class ResultFragment extends Fragment {
 
     public void onStart() {
         super.onStart();
-
+/*
         //request bluetooth list of things here
         AppDriver parent = (AppDriver)getActivity();
         BTService b = null;
         if (parent!= null) {
             b = parent.getBTService();
-
         }
+        //and request the list:
         String str = "" + defines.EXP_LIST;
         if(b != null) {
             b.write(str.getBytes());
         } else {
             //toast the error
         }
+        */
     }
 
 }

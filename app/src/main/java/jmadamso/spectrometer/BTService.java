@@ -399,6 +399,11 @@ public class BTService {
                                     .sendToTarget();
                             break;
 
+                        case defines.EXP_LIST:
+                            mHandler.obtainMessage(defines.EXP_LIST, bytes, -1, buffer)
+                                    .sendToTarget();
+                            break;
+
 
                         //server has sent some other message
                         default:
