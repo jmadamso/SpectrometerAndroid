@@ -81,8 +81,11 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         setContentView(R.layout.activity_main);
         switchToFragment(currentFragmentID);
 
-        //get the navigation gui business going
-        navDrawerSetup();
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        //default to a disabled nav bar state:
+        navDrawerDisable();
 
         //intentFilter allows this activity to listen for bluetooth device FOUND events
         //by attaching mReceiver to it.
@@ -433,34 +436,10 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                //if we get this message, we should update the display to reflect the state...
+
+                //if we get this message, we need to react to the new bluetooth state
                 case defines.MESSAGE_STATE_CHANGE:
-                    //... and if we need to respond to specific state changes, do it here
-                    switch (msg.arg1) {
-                        case BTService.STATE_CONNECTED:
-                            BTStatusString = "Bluetooth Status: Connected to " + mDeviceName;
-
-                            //as soon as we connect, poll the device for its status
-                            byte[] b = new byte[1];
-                            b[0] = defines.EXP_STATUS;
-                            mBTService.write(b);
-
-                            currentFragmentID = R.id.nav_experiment;
-                            switchToFragment(currentFragmentID);
-                            //Toast.makeText(AppDriver.this, "Moved to state CONNECTED" , Toast.LENGTH_SHORT).show();
-                            break;
-
-                        case BTService.STATE_CONNECTING:
-                            BTStatusString = "Bluetooth Status: Connecting";
-                            //Toast.makeText(AppDriver.this, "Moved to state CONNECTING" , Toast.LENGTH_SHORT).show();
-                            break;
-
-                        case BTService.STATE_NONE:
-                            BTStatusString = "Bluetooth Status: Not Connected";
-                            ExpStatusString = "Experiment status unknown.";
-                            //Toast.makeText(AppDriver.this, "Moved to state NONE" , Toast.LENGTH_SHORT).show();
-                            break;
-                    }
+                    onConnectionStateChanged(msg.arg1);
                     break;
 
 
@@ -597,19 +576,32 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
         }
     };
 
-    private void navDrawerSetup() {
 
-        //toolbar stuff:
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-    }
+
+    private void navDrawerEnable(){
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
+            drawer.addDrawerListener(toggle);
+            toggle.syncState();
+            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+            navigationView.setNavigationItemSelectedListener(this);
+        }
+
+        private void navDrawerDisable(){
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
+            toggle.setDrawerIndicatorEnabled(false);
+        }
+
+
 
     private void bluetoothSetup () {
 
@@ -649,6 +641,48 @@ public class AppDriver extends AppCompatActivity implements NavigationView.OnNav
             }
         }
     }
+
+
+private void onConnectionStateChanged(int newState){
+        switch (newState) {
+        case BTService.STATE_CONNECTED:
+            BTStatusString = "Bluetooth Status: Connected to " + mDeviceName;
+
+            //as soon as we connect, poll the device for its status
+            byte[] b = new byte[1];
+            b[0] = defines.EXP_STATUS;
+            mBTService.write(b);
+
+            //then enable the navigation drawer:
+            navDrawerEnable();
+
+            //...and then present the user with the experiment screen
+            currentFragmentID = R.id.nav_experiment;
+            switchToFragment(currentFragmentID);
+            //Toast.makeText(AppDriver.this, "Moved to state CONNECTED" , Toast.LENGTH_SHORT).show();
+            break;
+
+        //so far we seem to never use this...
+        case BTService.STATE_CONNECTING:
+            BTStatusString = "Bluetooth Status: Connecting";
+            //Toast.makeText(AppDriver.this, "Moved to state CONNECTING" , Toast.LENGTH_SHORT).show();
+        break;
+
+        //return user to the home screen and disable the navigation drawer:
+        case BTService.STATE_NONE:
+            BTStatusString = "Bluetooth Status: Not Connected";
+            ExpStatusString = "Experiment status unknown.";
+
+            navDrawerDisable();
+
+            currentFragmentID = R.id.nav_home;
+            switchToFragment(currentFragmentID);
+
+            //Toast.makeText(AppDriver.this, "Moved to state NONE" , Toast.LENGTH_SHORT).show();
+        break;
+        }
+    }
+
 
     private void onExperimentStatusChange(Object commandString) {
         //eventually we use this string to display everything about

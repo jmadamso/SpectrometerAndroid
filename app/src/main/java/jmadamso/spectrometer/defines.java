@@ -40,6 +40,7 @@ class defines {
     static final int BT_STRING_SIZE = 1024;
     static final int NUM_WAVELENGTHS = 1024;
 
+    //contains the wavelengths for our spectrometer
     static final double[] wavelengthArray = {
             337.26395,
             337.71746,
